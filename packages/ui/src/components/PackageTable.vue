@@ -7,6 +7,7 @@ import {
   FlexRender,
 } from '@tanstack/vue-table';
 import type { SortingState } from '@tanstack/vue-table';
+import { RouterLink } from 'vue-router';
 import { ref } from 'vue';
 import type { PackageResult } from '@lockwise/core';
 
@@ -105,8 +106,15 @@ const table = useVueTable({
       <tbody>
         <tr v-for="row in table.getRowModel().rows" :key="row.id">
           <td v-for="cell in row.getVisibleCells()" :key="cell.id">
+            <RouterLink
+              v-if="cell.column.id === 'name'"
+              :to="`/package/${cell.getValue()}`"
+              class="pkg-link"
+            >
+              <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+            </RouterLink>
             <span
-              v-if="cell.column.id === 'category'"
+              v-else-if="cell.column.id === 'category'"
               class="category-badge"
               :data-category="cell.getValue()"
             >
@@ -219,6 +227,17 @@ const table = useVueTable({
 .cvss-medium { color: var(--color-warning); }
 .cvss-low { color: var(--color-text-secondary); }
 .cvss-none { color: var(--color-text-secondary); opacity: 0.5; }
+
+.pkg-link {
+  color: var(--color-info);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.pkg-link:hover {
+  text-decoration: underline;
+}
 
 .empty {
   text-align: center;
