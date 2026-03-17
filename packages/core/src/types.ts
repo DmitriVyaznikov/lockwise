@@ -1,14 +1,14 @@
-/** Категория пакета по результатам анализа */
+/** Package category based on analysis results */
 export type PackageCategory = 'success' | 'due1month' | 'mixed' | 'maybeVulnerable';
 
-/** Информация об уязвимости */
+/** Vulnerability information */
 export interface VulnInfo {
   readonly id: string;
   readonly summary: string;
   readonly cvssScore: number;
 }
 
-/** Запись о пакете из lock-файла */
+/** Package entry from lock-file */
 export interface PackageEntry {
   readonly name: string;
   readonly version: string;
@@ -18,14 +18,14 @@ export interface PackageEntry {
   readonly peerDependencies?: Record<string, string>;
 }
 
-/** Результат парсинга lock-файла */
+/** Parsed lock-file result */
 export interface ParsedLockfile {
   readonly type: 'npm' | 'yarn' | 'pnpm';
   readonly packages: PackageEntry[];
   readonly rawPackages: Record<string, RawPackageData>;
 }
 
-/** Сырые данные пакета из lock-файла */
+/** Raw package data from lock-file */
 export interface RawPackageData {
   readonly version?: string;
   readonly resolved?: string;
@@ -34,20 +34,20 @@ export interface RawPackageData {
   readonly peerDependencies?: Record<string, string>;
 }
 
-/** Запись в карте semver ranges */
+/** Semver range map entry */
 export interface RangeEntry {
   readonly range: string;
   readonly from: string;
 }
 
-/** Результат выбора лучшей версии */
+/** Best version selection result */
 export interface VersionSelection {
   readonly version: string;
   readonly fullName: string;
   readonly category: PackageCategory;
 }
 
-/** Результат анализа одного пакета */
+/** Single package analysis result */
 export interface PackageResult {
   readonly name: string;
   readonly currentVersion: string;
@@ -58,7 +58,7 @@ export interface PackageResult {
   readonly semverRange?: string;
 }
 
-/** Итоговый отчёт */
+/** Analysis report */
 export interface LockwiseReport {
   readonly meta: {
     readonly lockfileType: 'npm' | 'yarn' | 'pnpm';
@@ -76,7 +76,7 @@ export interface LockwiseReport {
   readonly nexusUpload: string[];
 }
 
-/** Конфигурация */
+/** Configuration */
 export interface LockwiseConfig {
   readonly nexusUrl: string;
   readonly publicRegistry: string;

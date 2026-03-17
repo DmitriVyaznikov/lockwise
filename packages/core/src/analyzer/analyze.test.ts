@@ -38,7 +38,7 @@ const config: LockwiseConfig = {
 describe('analyze', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('должен вернуть LockwiseReport со всеми полями', async () => {
+  it('should return LockwiseReport with all fields', async () => {
     const parsedLockfile: ParsedLockfile = {
       type: 'npm',
       packages: [{ name: 'axios', version: '1.7.2', resolved: 'https://registry.npmjs.org/axios/-/axios-1.7.2.tgz' }],
@@ -61,7 +61,7 @@ describe('analyze', () => {
     expect(report.nexusUpload).toBeDefined();
   });
 
-  it('должен включить в nexusUpload пакеты с 404 в Nexus', async () => {
+  it('should include 404 Nexus packages in nexusUpload', async () => {
     const parsedLockfile: ParsedLockfile = {
       type: 'npm',
       packages: [{ name: 'foo', version: '1.0.0' }],

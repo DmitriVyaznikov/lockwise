@@ -40,19 +40,19 @@ describe('NpmParser', () => {
   const parser = new NpmParser();
 
   describe('canParse', () => {
-    it('должен распознать валидный package-lock.json', () => {
+    it('should recognize valid package-lock.json', () => {
       expect(parser.canParse(MINIMAL_LOCKFILE_V3)).toBe(true);
     });
-    it('должен отклонить невалидный JSON', () => {
+    it('should reject invalid JSON', () => {
       expect(parser.canParse('not json')).toBe(false);
     });
-    it('должен отклонить JSON без lockfileVersion', () => {
+    it('should reject JSON without lockfileVersion', () => {
       expect(parser.canParse(JSON.stringify({ name: 'test' }))).toBe(false);
     });
   });
 
   describe('parse', () => {
-    it('должен извлечь пакеты из lockfile v3', () => {
+    it('should extract packages from lockfile v3', () => {
       const result = parser.parse(MINIMAL_LOCKFILE_V3);
       expect(result.type).toBe('npm');
       expect(result.packages).toHaveLength(2);
@@ -63,17 +63,17 @@ describe('NpmParser', () => {
         dependencies: { 'follow-redirects': '^1.15.6' },
       });
     });
-    it('должен обработать scoped-пакеты', () => {
+    it('should handle scoped packages', () => {
       const result = parser.parse(SCOPED_PACKAGE_LOCKFILE);
       expect(result.packages).toHaveLength(1);
       expect(result.packages[0].name).toBe('@types/node');
     });
-    it('должен пропустить корневой пакет', () => {
+    it('should skip root package', () => {
       const result = parser.parse(MINIMAL_LOCKFILE_V3);
       const names = result.packages.map((p) => p.name);
       expect(names).not.toContain('test-project');
     });
-    it('должен сохранить rawPackages для buildRangeMap', () => {
+    it('should preserve rawPackages for buildRangeMap', () => {
       const result = parser.parse(MINIMAL_LOCKFILE_V3);
       expect(result.rawPackages).toBeDefined();
       expect(result.rawPackages['']).toBeDefined();

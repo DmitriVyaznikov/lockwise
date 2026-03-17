@@ -20,7 +20,7 @@ function makeVulnMap(entries: Record<string, VulnMapEntry>): Map<string, VulnMap
 }
 
 describe('selectBestVersion', () => {
-  it('должен выбрать последнюю старую версию без уязвимостей -> success', () => {
+  it('should select latest old version without vulnerabilities -> success', () => {
     const registry = makeRegistryData({ '1.0.0': OLD_DATE, '1.1.0': OLD_DATE, '1.2.0': OLD_DATE });
     const result = selectBestVersion('test-pkg', '^1.0.0', registry, makeVulnMap({}), 30);
     expect(result).not.toBeNull();
@@ -28,13 +28,13 @@ describe('selectBestVersion', () => {
     expect(result!.category).toBe('success');
   });
 
-  it('должен вернуть due1month если все версии свежие', () => {
+  it('should return due1month when all versions are fresh', () => {
     const registry = makeRegistryData({ '1.0.0': FRESH_DATE, '1.1.0': FRESH_DATE });
     const result = selectBestVersion('test-pkg', '^1.0.0', registry, makeVulnMap({}), 30);
     expect(result!.category).toBe('due1month');
   });
 
-  it('должен вернуть mixed если старые уязвимы, но есть свежие', () => {
+  it('should return mixed when old versions are vulnerable but fresh ones exist', () => {
     const registry = makeRegistryData({ '1.0.0': OLD_DATE, '1.1.0': FRESH_DATE });
     const vulnMap = makeVulnMap({
       'pkg:npm/test-pkg@1.0.0': { vulnerabilities: [{ id: 'CVE-1', summary: 'bad', cvssScore: 7.5 }] },
@@ -43,7 +43,7 @@ describe('selectBestVersion', () => {
     expect(result!.category).toBe('mixed');
   });
 
-  it('должен вернуть maybeVulnerable если все старые уязвимы и нет свежих', () => {
+  it('should return maybeVulnerable when all old versions are vulnerable and no fresh ones exist', () => {
     const registry = makeRegistryData({ '1.0.0': OLD_DATE });
     const vulnMap = makeVulnMap({
       'pkg:npm/test-pkg@1.0.0': { vulnerabilities: [{ id: 'CVE-1', summary: 'bad', cvssScore: 9.0 }] },
@@ -52,12 +52,12 @@ describe('selectBestVersion', () => {
     expect(result!.category).toBe('maybeVulnerable');
   });
 
-  it('должен вернуть null если нет версий в range', () => {
+  it('should return null when no versions match the range', () => {
     const registry = makeRegistryData({ '2.0.0': OLD_DATE });
     expect(selectBestVersion('test-pkg', '^1.0.0', registry, makeVulnMap({}), 30)).toBeNull();
   });
 
-  it('должен вернуть null при отсутствии данных registry', () => {
+  it('should return null when registry data is missing', () => {
     expect(selectBestVersion('test-pkg', '^1.0.0', null, makeVulnMap({}), 30)).toBeNull();
   });
 });

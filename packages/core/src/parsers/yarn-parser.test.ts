@@ -30,16 +30,16 @@ describe('YarnParser', () => {
   const parser = new YarnParser();
 
   describe('canParse', () => {
-    it('должен распознать yarn.lock v1', () => {
+    it('should recognize yarn.lock v1', () => {
       expect(parser.canParse(YARN_CLASSIC_LOCKFILE)).toBe(true);
     });
-    it('должен отклонить package-lock.json', () => {
+    it('should reject package-lock.json', () => {
       expect(parser.canParse(JSON.stringify({ lockfileVersion: 3 }))).toBe(false);
     });
   });
 
   describe('parse', () => {
-    it('должен извлечь пакеты из yarn.lock classic', () => {
+    it('should extract packages from yarn.lock classic', () => {
       const result = parser.parse(YARN_CLASSIC_LOCKFILE);
       expect(result.type).toBe('yarn');
       expect(result.packages).toHaveLength(2);
@@ -48,7 +48,7 @@ describe('YarnParser', () => {
       expect(axios!.version).toBe('1.7.2');
       expect(axios!.dependencies).toEqual({ 'follow-redirects': '^1.15.6' });
     });
-    it('должен обработать scoped-пакеты', () => {
+    it('should handle scoped packages', () => {
       const result = parser.parse(YARN_SCOPED_LOCKFILE);
       expect(result.packages).toHaveLength(1);
       expect(result.packages[0].name).toBe('@types/node');

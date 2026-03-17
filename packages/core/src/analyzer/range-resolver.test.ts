@@ -3,7 +3,7 @@ import { buildRangeMap, resolveRange } from './range-resolver.js';
 import type { RawPackageData } from '../types.js';
 
 describe('buildRangeMap', () => {
-  it('должен собрать ranges из dependencies', () => {
+  it('should collect ranges from dependencies', () => {
     const rawPackages: Record<string, RawPackageData> = {
       '': { dependencies: { axios: '^1.7.0' } },
       'node_modules/axios': { version: '1.7.2', dependencies: { 'follow-redirects': '^1.15.6' } },
@@ -13,7 +13,7 @@ describe('buildRangeMap', () => {
     expect(map.get('follow-redirects')).toEqual([{ range: '^1.15.6', from: 'node_modules/axios' }]);
   });
 
-  it('должен собрать ranges из devDependencies и peerDependencies', () => {
+  it('should collect ranges from devDependencies and peerDependencies', () => {
     const rawPackages: Record<string, RawPackageData> = {
       '': { devDependencies: { vitest: '^3.0.0' }, peerDependencies: { vue: '^3.4.0' } },
     };
@@ -24,7 +24,7 @@ describe('buildRangeMap', () => {
 });
 
 describe('resolveRange', () => {
-  it('должен предпочесть range из корня проекта', () => {
+  it('should prefer range from project root', () => {
     const rangeMap = new Map([
       ['axios', [
         { range: '^1.6.0', from: 'node_modules/some-lib' },
@@ -34,12 +34,12 @@ describe('resolveRange', () => {
     expect(resolveRange('axios', '1.7.2', rangeMap)).toBe('^1.7.0');
   });
 
-  it('должен вернуть fallback ^major.0.0 если нет entries', () => {
+  it('should return fallback ^major.0.0 when no entries', () => {
     const rangeMap = new Map<string, Array<{ range: string; from: string }>>();
     expect(resolveRange('unknown', '3.5.1', rangeMap)).toBe('^3.0.0');
   });
 
-  it('должен вернуть fallback если ни один range не подходит', () => {
+  it('should return fallback when no range matches', () => {
     const rangeMap = new Map([['axios', [{ range: '^2.0.0', from: '' }]]]);
     expect(resolveRange('axios', '1.7.2', rangeMap)).toBe('^1.0.0');
   });

@@ -41,16 +41,16 @@ describe('PnpmParser', () => {
   const parser = new PnpmParser();
 
   describe('canParse', () => {
-    it('должен распознать pnpm-lock.yaml', () => {
+    it('should recognize pnpm-lock.yaml', () => {
       expect(parser.canParse(PNPM_LOCKFILE_V9)).toBe(true);
     });
-    it('должен отклонить package-lock.json', () => {
+    it('should reject package-lock.json', () => {
       expect(parser.canParse(JSON.stringify({ lockfileVersion: 3 }))).toBe(false);
     });
   });
 
   describe('parse', () => {
-    it('должен извлечь пакеты из pnpm-lock.yaml', () => {
+    it('should extract packages from pnpm-lock.yaml', () => {
       const result = parser.parse(PNPM_LOCKFILE_V9);
       expect(result.type).toBe('pnpm');
       expect(result.packages.length).toBeGreaterThanOrEqual(2);
@@ -58,7 +58,7 @@ describe('PnpmParser', () => {
       expect(axios).toBeDefined();
       expect(axios!.version).toBe('1.7.2');
     });
-    it('должен обработать scoped-пакеты', () => {
+    it('should handle scoped packages', () => {
       const result = parser.parse(PNPM_SCOPED_LOCKFILE);
       const typesNode = result.packages.find((p) => p.name === '@types/node');
       expect(typesNode).toBeDefined();

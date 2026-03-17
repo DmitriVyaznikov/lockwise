@@ -29,5 +29,8 @@ coverage/
 # Claude
 CLAUDE.md
 
+# Docs (local planning files)
+docs/
+
 # Bundle analysis
 stats.html
