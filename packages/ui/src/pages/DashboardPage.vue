@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import type { CategoryKey } from '../types';
 import { useReport } from '../composables/useReport';
 import SummaryCards from '../components/SummaryCards.vue';
@@ -11,6 +11,20 @@ const { report, isLoading, error, fetchReport } = useReport();
 
 const activeCategory = ref<CategoryKey>('all');
 const searchQuery = ref('');
+const debouncedSearch = ref('');
+
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+watch(searchQuery, (value) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    debouncedSearch.value = value;
+  }, 300);
+});
+
+onUnmounted(() => {
+  clearTimeout(debounceTimer);
+});
 
 const filteredPackages = computed(() => {
   if (!report.value) return [];
@@ -20,8 +34,8 @@ const filteredPackages = computed(() => {
     packages = packages.filter((p) => p.category === activeCategory.value);
   }
 
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase();
+  if (debouncedSearch.value.trim()) {
+    const query = debouncedSearch.value.toLowerCase();
     packages = packages.filter((p) => p.name.toLowerCase().includes(query));
   }
 
