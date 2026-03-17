@@ -6,7 +6,7 @@ vi.mock('@lockwise/core', () => ({
   analyze: vi.fn(),
   detectAndParse: vi.fn(),
 }));
-vi.mock('../config.js', () => ({
+vi.mock('../../config.js', () => ({
   resolveConfig: vi.fn().mockReturnValue({
     nexusUrl: 'http://nexus.test/repository/npm-group',
     publicRegistry: 'https://registry.npmjs.org',
@@ -22,22 +22,22 @@ vi.mock('ora', () => ({
     text: '',
   }),
 }));
-vi.mock('../lockfile-resolver.js', () => ({
+vi.mock('../../lockfile-resolver.js', () => ({
   resolveLockfile: vi.fn().mockReturnValue('/project/package-lock.json'),
 }));
-vi.mock('../report-saver.js', () => ({
+vi.mock('../../report-saver.js', () => ({
   saveReport: vi.fn().mockReturnValue('/project/.lockwise/reports/latest.json'),
 }));
-vi.mock('../formatters/summary.js', () => ({
+vi.mock('../../formatters/summary.js', () => ({
   formatSummary: vi.fn().mockReturnValue('summary-output'),
 }));
-vi.mock('../formatters/table.js', () => ({
+vi.mock('../../formatters/table.js', () => ({
   formatTable: vi.fn().mockReturnValue('table-output'),
 }));
-vi.mock('../formatters/upload-list.js', () => ({
+vi.mock('../../formatters/upload-list.js', () => ({
   formatUploadList: vi.fn().mockReturnValue('upload-list-output'),
 }));
-vi.mock('../exit-code.js', () => ({
+vi.mock('../../exit-code.js', () => ({
   resolveExitCode: vi.fn().mockReturnValue(0),
 }));
 
@@ -78,16 +78,16 @@ describe('runAnalyze', () => {
     });
     vi.mocked(core.analyze).mockResolvedValue(mockReport);
 
-    const { resolveLockfile } = await import('../lockfile-resolver.js');
+    const { resolveLockfile } = await import('../../lockfile-resolver.js');
     vi.mocked(resolveLockfile).mockReturnValue('/project/package-lock.json');
 
-    const { saveReport } = await import('../report-saver.js');
+    const { saveReport } = await import('../../report-saver.js');
     vi.mocked(saveReport).mockReturnValue('/project/.lockwise/reports/latest.json');
 
-    const { resolveExitCode } = await import('../exit-code.js');
+    const { resolveExitCode } = await import('../../exit-code.js');
     vi.mocked(resolveExitCode).mockReturnValue(0);
 
-    const { resolveConfig } = await import('../config.js');
+    const { resolveConfig } = await import('../../config.js');
     vi.mocked(resolveConfig).mockReturnValue({
       nexusUrl: 'http://nexus.test/repository/npm-group',
       publicRegistry: 'https://registry.npmjs.org',
@@ -97,13 +97,13 @@ describe('runAnalyze', () => {
   });
 
   it('should return exit code 0 when all packages are OK', async () => {
-    const { runAnalyze } = await import('./analyze.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     const result = await runAnalyze({});
     expect(result.exitCode).toBe(0);
   });
 
   it('should return the report', async () => {
-    const { runAnalyze } = await import('./analyze.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     const result = await runAnalyze({});
     expect(result.report).toEqual(mockReport);
   });
@@ -112,27 +112,27 @@ describe('runAnalyze', () => {
     const core = await import('@lockwise/core');
     vi.mocked(core.detectAndParse).mockReturnValue(null);
 
-    const { runAnalyze } = await import('./analyze.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await expect(runAnalyze({})).rejects.toThrow('Failed to parse lockfile');
   });
 
   it('should pass explicit lockfile path to resolveLockfile', async () => {
-    const { resolveLockfile } = await import('../lockfile-resolver.js');
-    const { runAnalyze } = await import('./analyze.js');
+    const { resolveLockfile } = await import('../../lockfile-resolver.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await runAnalyze({ lockfile: '/project/custom.json' });
     expect(resolveLockfile).toHaveBeenCalledWith('/project/custom.json');
   });
 
   it('should pass nexusUrl CLI option to resolveConfig', async () => {
-    const { resolveConfig } = await import('../config.js');
-    const { runAnalyze } = await import('./analyze.js');
+    const { resolveConfig } = await import('../../config.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await runAnalyze({ nexusUrl: 'http://custom-nexus/npm' });
     expect(resolveConfig).toHaveBeenCalledWith({ nexusUrl: 'http://custom-nexus/npm' });
   });
 
   it('should output JSON when json option is true', async () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-    const { runAnalyze } = await import('./analyze.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await runAnalyze({ json: true });
     expect(consoleSpy).toHaveBeenCalledWith(JSON.stringify(mockReport, null, 2));
     consoleSpy.mockRestore();
@@ -140,11 +140,11 @@ describe('runAnalyze', () => {
 
   it('should output formatted text when json option is false', async () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-    const { formatSummary } = await import('../formatters/summary.js');
-    const { formatTable } = await import('../formatters/table.js');
-    const { formatUploadList } = await import('../formatters/upload-list.js');
+    const { formatSummary } = await import('../../formatters/summary.js');
+    const { formatTable } = await import('../../formatters/table.js');
+    const { formatUploadList } = await import('../../formatters/upload-list.js');
 
-    const { runAnalyze } = await import('./analyze.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await runAnalyze({});
 
     expect(formatSummary).toHaveBeenCalledWith(mockReport);
@@ -154,24 +154,24 @@ describe('runAnalyze', () => {
   });
 
   it('should save the report', async () => {
-    const { saveReport } = await import('../report-saver.js');
-    const { runAnalyze } = await import('./analyze.js');
+    const { saveReport } = await import('../../report-saver.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await runAnalyze({});
     expect(saveReport).toHaveBeenCalledWith(mockReport, '.lockwise', undefined);
   });
 
   it('should pass output option to saveReport', async () => {
-    const { saveReport } = await import('../report-saver.js');
-    const { runAnalyze } = await import('./analyze.js');
+    const { saveReport } = await import('../../report-saver.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await runAnalyze({ output: '/custom/report.json' });
     expect(saveReport).toHaveBeenCalledWith(mockReport, '.lockwise', '/custom/report.json');
   });
 
   it('should return exit code from resolveExitCode', async () => {
-    const { resolveExitCode } = await import('../exit-code.js');
+    const { resolveExitCode } = await import('../../exit-code.js');
     vi.mocked(resolveExitCode).mockReturnValue(2);
 
-    const { runAnalyze } = await import('./analyze.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     const result = await runAnalyze({});
     expect(result.exitCode).toBe(2);
   });
@@ -184,7 +184,7 @@ describe('runAnalyze', () => {
       return mockReport;
     });
 
-    const { runAnalyze } = await import('./analyze.js');
+    const { runAnalyze } = await import('../../commands/analyze.js');
     await runAnalyze({});
 
     expect(capturedOnProgress).toBeDefined();

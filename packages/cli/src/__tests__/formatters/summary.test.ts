@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatSummary } from './summary.js';
+import { formatSummary } from '../../formatters/summary.js';
 import type { LockwiseReport } from '@lockwise/core';
 
 const mockReport: LockwiseReport = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { resolveLockfile } from './lockfile-resolver.js';
+import { resolveLockfile } from '../lockfile-resolver.js';
 import fs from 'node:fs';
 
 vi.mock('node:fs');

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pnpmParser } from './pnpm-parser.js';
+import { pnpmParser } from '../../parsers/pnpm-parser.js';
 
 const PNPM_LOCKFILE_V9 = `lockfileVersion: '9.0'
 

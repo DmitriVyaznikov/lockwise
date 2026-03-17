@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildRangeMap, resolveRange } from './range-resolver.js';
-import type { RawPackageData } from '../types.js';
+import { buildRangeMap, resolveRange } from '../../analyzer/range-resolver.js';
+import type { RawPackageData } from '../../types.js';
 
 describe('buildRangeMap', () => {
   it('should collect ranges from dependencies', () => {

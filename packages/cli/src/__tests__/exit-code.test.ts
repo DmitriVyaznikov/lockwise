@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveExitCode } from './exit-code.js';
+import { resolveExitCode } from '../exit-code.js';
 import type { LockwiseReport } from '@lockwise/core';
 
 function makeReport(overrides: Partial<LockwiseReport['summary']> = {}, nexusUpload: string[] = []): LockwiseReport {

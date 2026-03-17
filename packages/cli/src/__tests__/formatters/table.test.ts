@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatTable } from './table.js';
+import { formatTable } from '../../formatters/table.js';
 import type { PackageResult } from '@lockwise/core';
 
 const mockPackages: PackageResult[] = [

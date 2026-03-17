@@ -3,7 +3,7 @@ import type { LockwiseReport } from '@lockwise/core';
 import fs from 'node:fs';
 import express from 'express';
 import request from 'supertest';
-import { createApiRouter, loadLatestReport } from './serve.js';
+import { createApiRouter, loadLatestReport } from '../../commands/serve.js';
 
 vi.mock('node:fs');
 

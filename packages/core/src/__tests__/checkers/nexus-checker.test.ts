@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { buildNexusTarballUrl, checkNexusAvailability } from './nexus-checker.js';
+import { buildNexusTarballUrl, checkNexusAvailability } from '../../checkers/nexus-checker.js';
 
 vi.mock('axios', async (importOriginal) => {
   const actual = await importOriginal<typeof import('axios')>();

@@ -1,25 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { analyze } from './analyze.js';
-import type { ParsedLockfile, LockwiseConfig } from '../types.js';
+import { analyze } from '../../analyzer/analyze.js';
+import type { ParsedLockfile, LockwiseConfig } from '../../types.js';
 
-vi.mock('../checkers/nexus-checker.js', () => ({
+vi.mock('../../checkers/nexus-checker.js', () => ({
   buildNexusTarballUrl: vi.fn((name: string, version: string, url: string) =>
     `${url}/${name}/-/${name.split('/').pop()}-${version}.tgz`,
   ),
   checkNexusAvailability: vi.fn(),
 }));
 
-vi.mock('../checkers/osv-checker.js', () => ({
+vi.mock('../../checkers/osv-checker.js', () => ({
   checkVulnerabilities: vi.fn(),
 }));
 
-vi.mock('../checkers/registry-fetcher.js', () => ({
+vi.mock('../../checkers/registry-fetcher.js', () => ({
   createRegistryFetcher: vi.fn(),
 }));
 
-import { checkNexusAvailability } from '../checkers/nexus-checker.js';
-import { checkVulnerabilities } from '../checkers/osv-checker.js';
-import { createRegistryFetcher } from '../checkers/registry-fetcher.js';
+import { checkNexusAvailability } from '../../checkers/nexus-checker.js';
+import { checkVulnerabilities } from '../../checkers/osv-checker.js';
+import { createRegistryFetcher } from '../../checkers/registry-fetcher.js';
 
 const mockedCheckNexus = vi.mocked(checkNexusAvailability);
 const mockedCheckVulns = vi.mocked(checkVulnerabilities);

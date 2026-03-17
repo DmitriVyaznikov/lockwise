@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { selectBestVersion } from './version-selector.js';
-import type { VulnMapEntry } from '../checkers/osv-checker.js';
+import { selectBestVersion } from '../../analyzer/version-selector.js';
+import type { VulnMapEntry } from '../../checkers/osv-checker.js';
 
 const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
 const NOW = Date.now();

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { checkVulnerabilities, extractCvssScore } from './osv-checker.js';
+import { checkVulnerabilities, extractCvssScore } from '../../checkers/osv-checker.js';
 
 vi.mock('axios', () => ({ default: { post: vi.fn() } }));
 import axios from 'axios';

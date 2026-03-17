@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { LockwiseReport } from '@lockwise/core';
-import { useReport } from './useReport';
+import { useReport } from '../../composables/useReport';
 
 const mockReport: LockwiseReport = {
   meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 3 },

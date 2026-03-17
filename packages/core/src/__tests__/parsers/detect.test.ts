@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectAndParse } from './detect.js';
+import { detectAndParse } from '../../parsers/detect.js';
 
 describe('detectAndParse', () => {
   it('should auto-detect npm lockfile', () => {

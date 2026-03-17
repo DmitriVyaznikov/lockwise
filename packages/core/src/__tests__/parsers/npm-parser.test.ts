@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { npmParser } from './npm-parser.js';
+import { npmParser } from '../../parsers/npm-parser.js';
 
 const MINIMAL_LOCKFILE_V3 = JSON.stringify({
   name: 'test-project',

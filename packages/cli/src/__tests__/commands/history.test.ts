@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import express from 'express';
 import request from 'supertest';
 import type { LockwiseReport } from '@lockwise/core';
-import { createHistoryRouter, computeDiff } from './history.js';
+import { createHistoryRouter, computeDiff } from '../../commands/history.js';
 
 vi.mock('node:fs');
 

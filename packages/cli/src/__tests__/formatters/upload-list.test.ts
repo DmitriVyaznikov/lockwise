@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatUploadList } from './upload-list.js';
+import { formatUploadList } from '../../formatters/upload-list.js';
 
 describe('formatUploadList', () => {
   it('should return success message when no packages to upload', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { saveReport } from './report-saver.js';
+import { saveReport } from '../report-saver.js';
 import fs from 'node:fs';
 import type { LockwiseReport } from '@lockwise/core';
 

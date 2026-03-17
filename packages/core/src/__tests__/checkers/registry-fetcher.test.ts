@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createRegistryFetcher } from './registry-fetcher.js';
+import { createRegistryFetcher } from '../../checkers/registry-fetcher.js';
 
 vi.mock('axios', () => ({ default: { get: vi.fn() } }));
 import axios from 'axios';
