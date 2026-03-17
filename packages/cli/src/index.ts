@@ -2,9 +2,11 @@
 import { Command } from 'commander';
 import { runAnalyze } from './commands/analyze.js';
 import { startServer } from './commands/serve.js';
-import { DEFAULT_CONFIG } from '@lockwise/core';
+import { CONFIG_DEFAULTS } from '@lockwise/core';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+try { process.loadEnvFile(); } catch { /* .env file is optional */ }
 
 const program = new Command()
   .name('lockwise')
@@ -34,7 +36,7 @@ program
   .option('-p, --port <number>', 'Server port', '3001')
   .action((options) => {
     const port = Number(options.port);
-    startServer(DEFAULT_CONFIG.outputDir, port);
+    startServer(process.env.LOCKWISE_OUTPUT_DIR ?? CONFIG_DEFAULTS.outputDir, port);
   });
 
 program
@@ -45,7 +47,7 @@ program
     const port = Number(options.port);
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const uiDist = path.resolve(__dirname, '../../ui/dist');
-    startServer(DEFAULT_CONFIG.outputDir, port, uiDist);
+    startServer(process.env.LOCKWISE_OUTPUT_DIR ?? CONFIG_DEFAULTS.outputDir, port, uiDist);
     console.log(`Dashboard: http://localhost:${port}`);
   });
 

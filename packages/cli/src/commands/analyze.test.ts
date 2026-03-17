@@ -5,12 +5,14 @@ vi.mock('node:fs');
 vi.mock('@lockwise/core', () => ({
   analyze: vi.fn(),
   detectAndParse: vi.fn(),
-  DEFAULT_CONFIG: {
+}));
+vi.mock('../config.js', () => ({
+  resolveConfig: vi.fn().mockReturnValue({
     nexusUrl: 'http://nexus.test/repository/npm-group',
     publicRegistry: 'https://registry.npmjs.org',
     minAgeDays: 30,
     outputDir: '.lockwise',
-  },
+  }),
 }));
 vi.mock('ora', () => ({
   default: () => ({
@@ -84,6 +86,14 @@ describe('runAnalyze', () => {
 
     const { resolveExitCode } = await import('../exit-code.js');
     vi.mocked(resolveExitCode).mockReturnValue(0);
+
+    const { resolveConfig } = await import('../config.js');
+    vi.mocked(resolveConfig).mockReturnValue({
+      nexusUrl: 'http://nexus.test/repository/npm-group',
+      publicRegistry: 'https://registry.npmjs.org',
+      minAgeDays: 30,
+      outputDir: '.lockwise',
+    });
   });
 
   it('should return exit code 0 when all packages are OK', async () => {
@@ -113,15 +123,11 @@ describe('runAnalyze', () => {
     expect(resolveLockfile).toHaveBeenCalledWith('/project/custom.json');
   });
 
-  it('should accept custom nexus URL', async () => {
-    const core = await import('@lockwise/core');
+  it('should pass nexusUrl CLI option to resolveConfig', async () => {
+    const { resolveConfig } = await import('../config.js');
     const { runAnalyze } = await import('./analyze.js');
     await runAnalyze({ nexusUrl: 'http://custom-nexus/npm' });
-    expect(vi.mocked(core.analyze)).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ nexusUrl: 'http://custom-nexus/npm' }),
-      expect.anything(),
-    );
+    expect(resolveConfig).toHaveBeenCalledWith({ nexusUrl: 'http://custom-nexus/npm' });
   });
 
   it('should output JSON when json option is true', async () => {

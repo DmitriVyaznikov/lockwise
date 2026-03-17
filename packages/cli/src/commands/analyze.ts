@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import ora from 'ora';
-import { analyze, detectAndParse, DEFAULT_CONFIG } from '@lockwise/core';
-import type { LockwiseConfig, LockwiseReport } from '@lockwise/core';
+import { analyze, detectAndParse } from '@lockwise/core';
+import type { LockwiseReport } from '@lockwise/core';
 import { resolveLockfile } from '../lockfile-resolver.js';
 import { saveReport } from '../report-saver.js';
+import { resolveConfig } from '../config.js';
 import { formatSummary } from '../formatters/summary.js';
 import { formatTable } from '../formatters/table.js';
 import { formatUploadList } from '../formatters/upload-list.js';
@@ -35,10 +36,7 @@ export async function runAnalyze(options: AnalyzeCliOptions): Promise<AnalyzeRes
   }
   spinner.succeed(`Parsed ${parsed.type} lockfile (${parsed.packages.length} packages)`);
 
-  const config: LockwiseConfig = {
-    ...DEFAULT_CONFIG,
-    ...(options.nexusUrl ? { nexusUrl: options.nexusUrl } : {}),
-  };
+  const config = resolveConfig({ nexusUrl: options.nexusUrl });
 
   const report = await analyze(parsed, config, {
     onProgress(phase, current, total) {
@@ -48,7 +46,7 @@ export async function runAnalyze(options: AnalyzeCliOptions): Promise<AnalyzeRes
     },
   });
 
-  const savedPath = saveReport(report, DEFAULT_CONFIG.outputDir, options.output);
+  const savedPath = saveReport(report, config.outputDir, options.output);
 
   if (options.json) {
     console.log(JSON.stringify(report, null, 2));

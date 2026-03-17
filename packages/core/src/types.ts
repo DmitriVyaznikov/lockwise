@@ -123,9 +123,8 @@ export interface ReportListItem {
   readonly summary: LockwiseReport['summary'];
 }
 
-export const DEFAULT_CONFIG = {
-  nexusUrl: 'REDACTED',
+export const CONFIG_DEFAULTS = {
   publicRegistry: 'https://registry.npmjs.org',
   minAgeDays: 30,
   outputDir: '.lockwise',
-} as const satisfies LockwiseConfig;
+} as const satisfies Omit<LockwiseConfig, 'nexusUrl'>;

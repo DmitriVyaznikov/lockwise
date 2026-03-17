@@ -20,12 +20,28 @@ When using Nexus as a private npm registry, `npm install` fails if any package i
 npm install
 npm run build
 
+# Set your Nexus URL (or create a .env file — see .env.example)
+export LOCKWISE_NEXUS_URL=http://your-nexus.example.com/repository/npm-group
+
 # Analyze your project's lockfile
 npx lockwise analyze
 
 # Open the web dashboard
 npx lockwise ui
 ```
+
+## Configuration
+
+Lockwise reads configuration from CLI flags, environment variables, and defaults (in that priority order).
+
+| Setting | CLI flag | Env var | Default |
+|---|---|---|---|
+| Nexus URL | `--nexus-url` | `LOCKWISE_NEXUS_URL` | *required* |
+| Public registry | — | `LOCKWISE_PUBLIC_REGISTRY` | `https://registry.npmjs.org` |
+| Min age (days) | — | `LOCKWISE_MIN_AGE_DAYS` | `30` |
+| Output directory | — | `LOCKWISE_OUTPUT_DIR` | `.lockwise` |
+
+Create a `.env` file in your project root (see `.env.example`). Lockwise loads it automatically via Node.js built-in `process.loadEnvFile()`.
 
 ## CLI Commands
 
@@ -99,15 +115,15 @@ Options:
 ## Programmatic Usage
 
 ```typescript
-import { detectAndParse, analyze, DEFAULT_CONFIG } from '@lockwise/core';
+import { detectAndParse, analyze, CONFIG_DEFAULTS } from '@lockwise/core';
 import fs from 'fs';
 
 const lockfileContent = fs.readFileSync('package-lock.json', 'utf-8');
 const parsed = detectAndParse(lockfileContent);
 
 const report = await analyze(parsed, {
-  ...DEFAULT_CONFIG,
-  nexusUrl: 'http://your-nexus.com/repository/npm-group',
+  ...CONFIG_DEFAULTS,
+  nexusUrl: process.env.LOCKWISE_NEXUS_URL!,
 });
 
 console.log(`Total: ${report.meta.totalPackages}`);
