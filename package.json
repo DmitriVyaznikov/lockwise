@@ -10,6 +10,7 @@
     "test:watch": "vitest",
     "test:core": "vitest run --project core",
     "test:cli": "vitest run --project cli",
+    "test:ui": "vitest run --project ui",
     "coverage": "vitest run --coverage",
     "lint": "eslint packages/ --fix",
     "type-check": "tsc -b tsconfig.json",

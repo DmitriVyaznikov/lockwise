@@ -17,6 +17,14 @@ export default defineConfig({
           include: ['src/**/*.test.ts'],
         },
       },
+      {
+        test: {
+          name: 'ui',
+          root: 'packages/ui',
+          include: ['src/**/*.test.ts'],
+          environment: 'jsdom',
+        },
+      },
     ],
     coverage: {
       exclude: [

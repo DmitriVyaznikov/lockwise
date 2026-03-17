@@ -17,7 +17,6 @@
   "files": [],
   "references": [
     { "path": "packages/core" },
-    { "path": "packages/cli" },
-    { "path": "packages/ui" }
+    { "path": "packages/cli" }
   ]
 }
