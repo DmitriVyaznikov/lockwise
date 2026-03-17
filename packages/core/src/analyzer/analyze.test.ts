@@ -79,4 +79,24 @@ describe('analyze', () => {
     const report = await analyze(parsedLockfile, config);
     expect(report.nexusUpload.length).toBeGreaterThan(0);
   });
+
+  it('should categorize as unavailable when registry returns null', async () => {
+    const parsedLockfile: ParsedLockfile = {
+      type: 'npm',
+      packages: [{ name: 'unknown-pkg', version: '1.0.0' }],
+      rawPackages: {
+        '': { dependencies: { 'unknown-pkg': '^1.0.0' } },
+        'node_modules/unknown-pkg': { version: '1.0.0' },
+      },
+    };
+    mockedCheckNexus.mockResolvedValue(404);
+    mockedCheckVulns.mockResolvedValue(new Map());
+    mockedCreateFetcher.mockReturnValue({
+      fetch: vi.fn().mockResolvedValue(null),
+    });
+
+    const report = await analyze(parsedLockfile, config);
+    expect(report.packages[0].category).toBe('unavailable');
+    expect(report.summary.unavailable).toBe(1);
+  });
 });

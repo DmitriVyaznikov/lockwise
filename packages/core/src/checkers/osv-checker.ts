@@ -1,8 +1,10 @@
 import axios from 'axios';
 import type { VulnInfo } from '../types.js';
+import { logger } from '../logger.js';
 
 const OSV_BATCH_URL = 'https://api.osv.dev/v1/querybatch';
 const BATCH_SIZE = 1000;
+const REQUEST_TIMEOUT_MS = 30_000;
 
 const SEVERITY_SCORE_MAP: Record<string, number> = {
   CRITICAL: 9.5,
@@ -49,24 +51,43 @@ export async function checkVulnerabilities(purls: string[]): Promise<Map<string,
   const result = new Map<string, VulnMapEntry>();
   if (purls.length === 0) return result;
 
-  try {
-    for (let i = 0; i < purls.length; i += BATCH_SIZE) {
-      const batch = purls.slice(i, i + BATCH_SIZE);
-      const queries = batch.map((purl) => ({ package: { purl } }));
-      const response = await axios.post<OsvBatchResponse>(OSV_BATCH_URL, { queries });
+  const batches: string[][] = [];
+  for (let i = 0; i < purls.length; i += BATCH_SIZE) {
+    batches.push(purls.slice(i, i + BATCH_SIZE));
+  }
 
-      for (let j = 0; j < batch.length; j++) {
-        const vulns = response.data.results[j]?.vulns ?? [];
-        const vulnerabilities: VulnInfo[] = vulns.map((v) => ({
-          id: v.id,
-          summary: v.summary ?? '',
-          cvssScore: extractCvssScore(v),
-        }));
-        result.set(batch[j], { vulnerabilities });
+  const settled = await Promise.allSettled(batches.map((batch) => fetchOsvBatch(batch)));
+
+  for (const entry of settled) {
+    if (entry.status === 'fulfilled') {
+      for (const [purl, vulnEntry] of entry.value) {
+        result.set(purl, vulnEntry);
       }
     }
-  } catch {
-    return new Map();
+  }
+
+  return result;
+}
+
+async function fetchOsvBatch(batch: string[]): Promise<Map<string, VulnMapEntry>> {
+  const result = new Map<string, VulnMapEntry>();
+  try {
+    const queries = batch.map((purl) => ({ package: { purl } }));
+    const response = await axios.post<OsvBatchResponse>(OSV_BATCH_URL, { queries }, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    for (let j = 0; j < batch.length; j++) {
+      const vulns = response.data.results[j]?.vulns ?? [];
+      const vulnerabilities: VulnInfo[] = vulns.map((v) => ({
+        id: v.id,
+        summary: v.summary ?? '',
+        cvssScore: extractCvssScore(v),
+      }));
+      result.set(batch[j], { vulnerabilities });
+    }
+  } catch (error) {
+    logger.error('[OsvChecker] batch failed:', error, { batchSize: batch.length });
   }
 
   return result;

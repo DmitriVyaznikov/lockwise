@@ -18,5 +18,14 @@ export default defineConfig({
         },
       },
     ],
+    coverage: {
+      exclude: [
+        '**/dist/**',
+        '**/node_modules/**',
+        'packages/cli/src/index.ts',
+        'packages/ui/**',
+        '**/index.ts',
+      ],
+    },
   },
 });

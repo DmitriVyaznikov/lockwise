@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NpmParser } from './npm-parser.js';
+import { npmParser } from './npm-parser.js';
 
 const MINIMAL_LOCKFILE_V3 = JSON.stringify({
   name: 'test-project',
@@ -36,8 +36,8 @@ const SCOPED_PACKAGE_LOCKFILE = JSON.stringify({
   },
 });
 
-describe('NpmParser', () => {
-  const parser = new NpmParser();
+describe('npmParser', () => {
+  const parser = npmParser;
 
   describe('canParse', () => {
     it('should recognize valid package-lock.json', () => {

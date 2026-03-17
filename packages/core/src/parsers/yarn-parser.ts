@@ -30,10 +30,10 @@ function extractPackageName(key: string): string {
   return cleaned;
 }
 
-export class YarnParser implements LockfileParser {
+export const yarnParser: LockfileParser = {
   canParse(content: string): boolean {
     return content.includes('# yarn lockfile v1');
-  }
+  },
 
   parse(content: string): ParsedLockfile {
     const parsed = lockfile.parse(content) as { type: string; object: Record<string, YarnLockEntry> };
@@ -49,13 +49,12 @@ export class YarnParser implements LockfileParser {
       if (seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
 
-      const entry: PackageEntry = {
+      packages.push({
         name,
         version: details.version,
         ...(details.resolved ? { resolved: details.resolved } : {}),
         ...(details.dependencies ? { dependencies: details.dependencies } : {}),
-      };
-      packages.push(entry);
+      });
 
       rawPackages[key] = {
         version: details.version,
@@ -65,5 +64,5 @@ export class YarnParser implements LockfileParser {
     }
 
     return { type: 'yarn', packages, rawPackages };
-  }
-}
+  },
+};

@@ -85,9 +85,9 @@ export interface LockwiseConfig {
   readonly outputDir: string;
 }
 
-export const DEFAULT_CONFIG: LockwiseConfig = {
+export const DEFAULT_CONFIG = {
   nexusUrl: 'REDACTED',
   publicRegistry: 'https://registry.npmjs.org',
   minAgeDays: 30,
   outputDir: '.lockwise',
-} as const;
+} as const satisfies LockwiseConfig;

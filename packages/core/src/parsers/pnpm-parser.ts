@@ -29,10 +29,10 @@ function parsePackageKey(key: string): { name: string; version: string } | null 
   return { name: key.slice(0, atIndex), version: key.slice(atIndex + 1) };
 }
 
-export class PnpmParser implements LockfileParser {
+export const pnpmParser: LockfileParser = {
   canParse(content: string): boolean {
     return !content.trimStart().startsWith('{') && content.includes('lockfileVersion:');
-  }
+  },
 
   parse(content: string): ParsedLockfile {
     const data = YAML.parse(content) as PnpmLockfile;
@@ -47,14 +47,13 @@ export class PnpmParser implements LockfileParser {
       const parsed = parsePackageKey(key);
       if (!parsed) continue;
 
-      const entry: PackageEntry = {
+      packages.push({
         name: parsed.name,
         version: parsed.version,
         ...(details.dependencies ? { dependencies: details.dependencies } : {}),
         ...(details.devDependencies ? { devDependencies: details.devDependencies } : {}),
         ...(details.peerDependencies ? { peerDependencies: details.peerDependencies } : {}),
-      };
-      packages.push(entry);
+      });
 
       rawPackages[key] = {
         version: parsed.version,
@@ -65,5 +64,5 @@ export class PnpmParser implements LockfileParser {
     }
 
     return { type: 'pnpm', packages, rawPackages };
-  }
-}
+  },
+};

@@ -1,14 +1,14 @@
 import type { ParsedLockfile } from '../types.js';
 import type { LockfileParser } from './types.js';
-import { NpmParser } from './npm-parser.js';
-import { YarnParser } from './yarn-parser.js';
-import { PnpmParser } from './pnpm-parser.js';
+import { npmParser } from './npm-parser.js';
+import { yarnParser } from './yarn-parser.js';
+import { pnpmParser } from './pnpm-parser.js';
 
-const PARSERS: LockfileParser[] = [new NpmParser(), new YarnParser(), new PnpmParser()];
+const PARSERS: LockfileParser[] = [npmParser, yarnParser, pnpmParser];
 
-export function detectAndParse(content: string): ParsedLockfile {
+export function detectAndParse(content: string): ParsedLockfile | null {
   for (const parser of PARSERS) {
     if (parser.canParse(content)) return parser.parse(content);
   }
-  throw new Error('Unsupported lockfile format');
+  return null;
 }

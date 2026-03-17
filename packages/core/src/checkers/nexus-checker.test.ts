@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildNexusTarballUrl, checkNexusAvailability } from './nexus-checker.js';
 
-vi.mock('axios', () => ({ default: { head: vi.fn() } }));
-import axios from 'axios';
+vi.mock('axios', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('axios')>();
+  return { ...actual, default: { ...actual.default, head: vi.fn() } };
+});
+import axios, { AxiosError } from 'axios';
 const mockedAxios = vi.mocked(axios);
 
 const NEXUS_URL = 'http://nexus.example.com/repository/npm-group';
@@ -22,7 +25,14 @@ describe('checkNexusAvailability', () => {
     expect(await checkNexusAvailability(`${NEXUS_URL}/axios/-/axios-1.7.2.tgz`)).toBe(200);
   });
   it('should return 404 for unavailable package', async () => {
-    mockedAxios.head.mockRejectedValueOnce({ response: { status: 404 } });
+    const error = new AxiosError('Not Found', '404', undefined, undefined, {
+      status: 404,
+      statusText: 'Not Found',
+      headers: {},
+      config: { headers: {} } as never,
+      data: null,
+    });
+    mockedAxios.head.mockRejectedValueOnce(error);
     expect(await checkNexusAvailability(`${NEXUS_URL}/foo/-/foo-1.0.0.tgz`)).toBe(404);
   });
 });

@@ -1,6 +1,19 @@
 import type { ParsedLockfile, PackageEntry, RawPackageData } from '../types.js';
 import type { LockfileParser } from './types.js';
 
+interface NpmLockfileJson {
+  readonly lockfileVersion?: number;
+  readonly packages?: Record<string, NpmRawEntry>;
+}
+
+interface NpmRawEntry {
+  readonly version?: string;
+  readonly resolved?: string;
+  readonly dependencies?: Record<string, string>;
+  readonly devDependencies?: Record<string, string>;
+  readonly peerDependencies?: Record<string, string>;
+}
+
 function extractPackageName(key: string): string | null {
   const match = key.match(/node_modules\/(.+)$/);
   if (!match) return null;
@@ -12,39 +25,46 @@ function extractPackageName(key: string): string | null {
   return raw;
 }
 
-export class NpmParser implements LockfileParser {
+export const npmParser: LockfileParser = {
   canParse(content: string): boolean {
     try {
-      const data = JSON.parse(content);
+      const data = JSON.parse(content) as NpmLockfileJson;
       return typeof data.lockfileVersion === 'number' && data.lockfileVersion >= 2;
     } catch {
       return false;
     }
-  }
+  },
 
   parse(content: string): ParsedLockfile {
-    const data = JSON.parse(content);
-    const rawPackages: Record<string, RawPackageData> = data.packages ?? {};
+    const data = JSON.parse(content) as NpmLockfileJson;
+    const rawEntries = data.packages ?? {};
+    const rawPackages: Record<string, RawPackageData> = {};
     const packages: PackageEntry[] = [];
 
-    for (const [key, details] of Object.entries(rawPackages) as [string, Record<string, unknown>][]) {
+    for (const [key, details] of Object.entries(rawEntries)) {
+      rawPackages[key] = {
+        version: details.version,
+        ...(details.resolved ? { resolved: details.resolved } : {}),
+        ...(details.dependencies ? { dependencies: details.dependencies } : {}),
+        ...(details.devDependencies ? { devDependencies: details.devDependencies } : {}),
+        ...(details.peerDependencies ? { peerDependencies: details.peerDependencies } : {}),
+      };
+
       if (key === '') continue;
       const name = extractPackageName(key);
       if (!name) continue;
-      const version = details.version as string | undefined;
-      if (!version) continue;
+      if (typeof details.version !== 'string') continue;
 
-      const entry: PackageEntry = {
+      packages.push({
         name,
-        version,
-        ...(details.resolved ? { resolved: details.resolved as string } : {}),
-        ...(details.dependencies ? { dependencies: details.dependencies as Record<string, string> } : {}),
-        ...(details.devDependencies ? { devDependencies: details.devDependencies as Record<string, string> } : {}),
-        ...(details.peerDependencies ? { peerDependencies: details.peerDependencies as Record<string, string> } : {}),
-      };
-      packages.push(entry);
+        version: details.version,
+        ...(details.resolved ? { resolved: details.resolved } : {}),
+        ...(details.dependencies ? { dependencies: details.dependencies } : {}),
+        ...(details.devDependencies ? { devDependencies: details.devDependencies } : {}),
+        ...(details.peerDependencies ? { peerDependencies: details.peerDependencies } : {}),
+      });
     }
 
-    return { type: 'npm', packages, rawPackages: rawPackages as Record<string, RawPackageData> };
-  }
-}
+    return { type: 'npm', packages, rawPackages };
+  },
+};

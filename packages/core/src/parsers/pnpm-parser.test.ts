@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PnpmParser } from './pnpm-parser.js';
+import { pnpmParser } from './pnpm-parser.js';
 
 const PNPM_LOCKFILE_V9 = `lockfileVersion: '9.0'
 
@@ -37,8 +37,8 @@ packages:
     resolution: {integrity: sha512-zzz}
 `;
 
-describe('PnpmParser', () => {
-  const parser = new PnpmParser();
+describe('pnpmParser', () => {
+  const parser = pnpmParser;
 
   describe('canParse', () => {
     it('should recognize pnpm-lock.yaml', () => {
