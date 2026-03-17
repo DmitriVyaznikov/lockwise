@@ -38,10 +38,20 @@ export async function runAnalyze(options: AnalyzeCliOptions): Promise<AnalyzeRes
 
   const config = resolveConfig({ nexusUrl: options.nexusUrl });
 
+  let lastPhase = '';
   spinner.start('Starting analysis...');
   const report = await analyze(parsed, config, {
     onProgress(phase, current, total) {
-      spinner.text = `[${phase}] ${current}/${total}`;
+      if (lastPhase && lastPhase !== phase) {
+        spinner.succeed(`[${lastPhase}] done`);
+        spinner.start();
+      }
+      lastPhase = phase;
+      if (phase === 'done') {
+        spinner.succeed('Analysis complete');
+      } else {
+        spinner.text = `[${phase}] ${current}/${total}`;
+      }
     },
   });
 

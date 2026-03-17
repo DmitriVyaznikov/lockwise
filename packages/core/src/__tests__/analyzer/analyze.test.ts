@@ -127,6 +127,45 @@ describe('analyze', () => {
     expect(report.nexusUpload.split(' ').filter((u) => u === 'bar@2.0.0')).toHaveLength(1);
   });
 
+  it('should include 500 Nexus packages in nexusUpload', async () => {
+    const parsedLockfile: ParsedLockfile = {
+      type: 'npm',
+      packages: [{ name: 'fail-pkg', version: '1.0.0' }],
+      rawPackages: {
+        '': { dependencies: { 'fail-pkg': '^1.0.0' } },
+        'node_modules/fail-pkg': { version: '1.0.0' },
+      },
+    };
+    mockedCheckNexus.mockResolvedValue(500);
+    mockedCheckVulns.mockResolvedValue(new Map());
+    mockedCreateFetcher.mockReturnValue({
+      fetch: vi.fn().mockResolvedValue({ name: 'fail-pkg', versions: { '1.0.0': {} }, time: { '1.0.0': OLD_DATE } }),
+    });
+
+    const report = await analyze(parsedLockfile, config);
+    expect(report.nexusUpload).toContain('fail-pkg@1.0.0');
+    expect(report.packages[0].nexusAvailable).toBe(false);
+  });
+
+  it('should include status 0 (connection error) packages in nexusUpload', async () => {
+    const parsedLockfile: ParsedLockfile = {
+      type: 'npm',
+      packages: [{ name: 'conn-err', version: '2.0.0' }],
+      rawPackages: {
+        '': { dependencies: { 'conn-err': '^2.0.0' } },
+        'node_modules/conn-err': { version: '2.0.0' },
+      },
+    };
+    mockedCheckNexus.mockResolvedValue(0);
+    mockedCheckVulns.mockResolvedValue(new Map());
+    mockedCreateFetcher.mockReturnValue({
+      fetch: vi.fn().mockResolvedValue({ name: 'conn-err', versions: { '2.0.0': {} }, time: { '2.0.0': OLD_DATE } }),
+    });
+
+    const report = await analyze(parsedLockfile, config);
+    expect(report.nexusUpload).toContain('conn-err@2.0.0');
+  });
+
   it('should categorize as unavailable when registry returns null', async () => {
     const parsedLockfile: ParsedLockfile = {
       type: 'npm',

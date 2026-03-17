@@ -43,18 +43,23 @@ export async function analyze(
   const fetcher = createRegistryFetcher(config.publicRegistry);
 
   onProgress?.('nexus', 0, packages.length);
-  const nexusResults = await checkAllNexus(packages, config.nexusUrl);
+  const nexusResults = await checkAllNexus(packages, config.nexusUrl, (current) => {
+    onProgress?.('nexus', current, packages.length);
+  });
   const nexusStatusMap = buildNexusStatusMap(nexusResults);
-  const unavailablePackages = nexusResults.filter((r) => r.status === 404);
+  const unavailablePackages = nexusResults.filter((r) => r.status !== 200);
 
-  onProgress?.('vulnerabilities', 0, packages.length);
   const purls = packages.map((pkg) => `pkg:npm/${pkg.name}@${pkg.version}`);
+  onProgress?.('vulnerabilities', 0, purls.length);
   const vulnMap = await checkVulnerabilities(purls);
+  onProgress?.('vulnerabilities', purls.length, purls.length);
 
-  onProgress?.('registry', 0, packages.length);
-  const registryCache = await fetchAllRegistryData(packages, fetcher);
+  const uniqueNames = [...new Set(packages.map((p) => p.name))];
+  onProgress?.('registry', 0, uniqueNames.length);
+  const registryCache = await fetchAllRegistryData(packages, fetcher, (current) => {
+    onProgress?.('registry', current, uniqueNames.length);
+  });
 
-  onProgress?.('analysis', 0, packages.length);
   const packageResults = buildPackageResults(packages, nexusStatusMap, vulnMap, registryCache, rangeMap, config.minAgeDays);
   const summary = buildSummary(packageResults);
   onProgress?.('done', packages.length, packages.length);
@@ -82,15 +87,18 @@ function buildNexusStatusMap(results: NexusCheckResult[]): Map<string, NexusChec
 async function fetchAllRegistryData(
   packages: ParsedLockfile['packages'],
   fetcher: ReturnType<typeof createRegistryFetcher>,
+  onItem?: (completed: number) => void,
 ): Promise<Map<string, RegistryData | null>> {
   const limit = pLimit(CONCURRENCY_LIMIT);
   const uniqueNames = [...new Set(packages.map((p) => p.name))];
   const cache = new Map<string, RegistryData | null>();
+  let completed = 0;
 
   const fetches = uniqueNames.map((name) =>
     limit(async () => {
       const data = await fetcher.fetch(name);
       cache.set(name, data);
+      onItem?.(++completed);
     }),
   );
   await Promise.allSettled(fetches);
@@ -178,12 +186,15 @@ function buildPackageResults(
 async function checkAllNexus(
   packages: ParsedLockfile['packages'],
   nexusUrl: string,
+  onItem?: (completed: number) => void,
 ): Promise<NexusCheckResult[]> {
   const limit = pLimit(CONCURRENCY_LIMIT);
+  let completed = 0;
   const checks = packages.map((pkg) =>
     limit(async () => {
       const tarballUrl = buildNexusTarballUrl(pkg.name, pkg.version, nexusUrl);
       const status = await checkNexusAvailability(tarballUrl);
+      onItem?.(++completed);
       return { name: pkg.name, version: pkg.version, status, tarballUrl };
     }),
   );
