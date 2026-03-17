@@ -63,7 +63,7 @@ export async function analyze(
     },
     packages: packageResults,
     summary,
-    nexusUpload: unavailablePackages.map((r) => r.tarballUrl),
+    nexusUpload: buildNexusUploadList(unavailablePackages, packageResults, config.nexusUrl),
   };
 }
 
@@ -154,6 +154,23 @@ async function checkAllNexus(
   return settled
     .filter((r): r is PromiseFulfilledResult<NexusCheckResult> => r.status === 'fulfilled')
     .map((r) => r.value);
+}
+
+function buildNexusUploadList(
+  unavailablePackages: NexusCheckResult[],
+  packageResults: PackageResult[],
+  nexusUrl: string,
+): string[] {
+  const urls = new Set<string>();
+  for (const pkg of unavailablePackages) {
+    urls.add(pkg.tarballUrl);
+  }
+  for (const result of packageResults) {
+    if (result.recommendedVersion && result.recommendedVersion !== result.currentVersion) {
+      urls.add(buildNexusTarballUrl(result.name, result.recommendedVersion, nexusUrl));
+    }
+  }
+  return [...urls];
 }
 
 function buildSummary(results: PackageResult[]): LockwiseReport['summary'] {

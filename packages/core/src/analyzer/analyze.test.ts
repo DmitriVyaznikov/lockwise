@@ -80,6 +80,56 @@ describe('analyze', () => {
     expect(report.nexusUpload.length).toBeGreaterThan(0);
   });
 
+  it('should include recommended version tarball URLs in nexusUpload', async () => {
+    const parsedLockfile: ParsedLockfile = {
+      type: 'npm',
+      packages: [{ name: 'foo', version: '1.0.0' }],
+      rawPackages: {
+        '': { dependencies: { foo: '^1.0.0' } },
+        'node_modules/foo': { version: '1.0.0' },
+      },
+    };
+    mockedCheckNexus.mockResolvedValue(404);
+    mockedCheckVulns.mockResolvedValue(new Map());
+    mockedCreateFetcher.mockReturnValue({
+      fetch: vi.fn().mockResolvedValue({
+        name: 'foo',
+        versions: { '1.0.0': {}, '1.2.0': {} },
+        time: { '1.0.0': OLD_DATE, '1.2.0': OLD_DATE },
+      }),
+    });
+
+    const report = await analyze(parsedLockfile, config);
+    const currentUrl = `${config.nexusUrl}/foo/-/foo-1.0.0.tgz`;
+    const recommendedUrl = `${config.nexusUrl}/foo/-/foo-1.2.0.tgz`;
+    expect(report.nexusUpload).toContain(currentUrl);
+    expect(report.nexusUpload).toContain(recommendedUrl);
+  });
+
+  it('should not duplicate tarball URLs when recommended equals current', async () => {
+    const parsedLockfile: ParsedLockfile = {
+      type: 'npm',
+      packages: [{ name: 'bar', version: '2.0.0' }],
+      rawPackages: {
+        '': { dependencies: { bar: '^2.0.0' } },
+        'node_modules/bar': { version: '2.0.0' },
+      },
+    };
+    mockedCheckNexus.mockResolvedValue(404);
+    mockedCheckVulns.mockResolvedValue(new Map());
+    mockedCreateFetcher.mockReturnValue({
+      fetch: vi.fn().mockResolvedValue({
+        name: 'bar',
+        versions: { '2.0.0': {} },
+        time: { '2.0.0': OLD_DATE },
+      }),
+    });
+
+    const report = await analyze(parsedLockfile, config);
+    const url = `${config.nexusUrl}/bar/-/bar-2.0.0.tgz`;
+    expect(report.nexusUpload.filter((u) => u === url)).toHaveLength(1);
+  });
+
   it('should categorize as unavailable when registry returns null', async () => {
     const parsedLockfile: ParsedLockfile = {
       type: 'npm',
