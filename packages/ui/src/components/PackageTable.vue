@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import {
   useVueTable,
   getCoreRowModel,
@@ -14,6 +13,13 @@ import type { PackageResult } from '@lockwise/core';
 const props = defineProps<{
   packages: PackageResult[];
 }>();
+
+function cvssClass(score: number | null): string {
+  if (score === null) return 'cvss-none';
+  if (score >= 7) return 'cvss-high';
+  if (score >= 4) return 'cvss-medium';
+  return 'cvss-low';
+}
 
 const sorting = ref<SortingState>([]);
 
@@ -127,14 +133,6 @@ const table = useVueTable({
   </div>
 </template>
 
-<script lang="ts">
-function cvssClass(score: number | null): string {
-  if (score === null) return 'cvss-none';
-  if (score >= 7) return 'cvss-high';
-  if (score >= 4) return 'cvss-medium';
-  return 'cvss-low';
-}
-</script>
 
 <style scoped>
 .table-wrapper {

@@ -7,8 +7,13 @@ export function loadLatestReport(outputDir: string): LockwiseReport | null {
   const latestPath = path.join(outputDir, 'reports', 'latest.json');
   if (!fs.existsSync(latestPath)) return null;
 
-  const content = fs.readFileSync(latestPath, 'utf-8');
-  return JSON.parse(content) as LockwiseReport;
+  try {
+    const content = fs.readFileSync(latestPath, 'utf-8');
+    return JSON.parse(content) as LockwiseReport;
+  } catch (error) {
+    console.error('[serve] Failed to load report:', error);
+    return null;
+  }
 }
 
 export function createApiRouter(outputDir: string): Router {
@@ -33,6 +38,7 @@ export function startServer(
 ): { close: () => void } {
   const app = express();
 
+  // API router must be registered before the SPA catch-all
   app.use(createApiRouter(outputDir));
 
   if (uiDistPath && fs.existsSync(uiDistPath)) {

@@ -13,9 +13,11 @@ const cards = [
   { key: 'maybeVulnerable', label: 'Vulnerable', color: 'var(--color-error)' },
 ] as const;
 
-function getCount(key: string): number {
+type CardKey = (typeof cards)[number]['key'];
+
+function getCount(key: CardKey): number {
   if (key === 'total') return props.report.meta.totalPackages;
-  return props.report.summary[key as keyof typeof props.report.summary] ?? 0;
+  return props.report.summary[key as keyof LockwiseReport['summary']] ?? 0;
 }
 </script>
 

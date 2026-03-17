@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { LockwiseReport } from '@lockwise/core';
-
-type CategoryKey = 'all' | 'success' | 'due1month' | 'mixed' | 'maybeVulnerable' | 'unavailable';
+import type { CategoryKey } from '../types';
 
 const props = defineProps<{
   summary: LockwiseReport['summary'];

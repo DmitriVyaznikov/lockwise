@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import type { PackageCategory } from '@lockwise/core';
+import type { CategoryKey } from '../types';
 import { useReport } from '../composables/useReport';
 import SummaryCards from '../components/SummaryCards.vue';
 import CategoryFilter from '../components/CategoryFilter.vue';
 import ToolBar from '../components/ToolBar.vue';
 import PackageTable from '../components/PackageTable.vue';
-
-type CategoryKey = 'all' | PackageCategory | 'unavailable';
 
 const { report, isLoading, error, fetchReport } = useReport();
 

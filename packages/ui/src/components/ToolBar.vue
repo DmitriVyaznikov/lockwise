@@ -13,12 +13,16 @@ const emit = defineEmits<{
 const copied = ref(false);
 
 async function copyUploadList() {
-  const text = props.nexusUpload.join('\n');
-  await navigator.clipboard.writeText(text);
-  copied.value = true;
-  setTimeout(() => {
-    copied.value = false;
-  }, 2000);
+  try {
+    const text = props.nexusUpload.join('\n');
+    await navigator.clipboard.writeText(text);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch {
+    console.error('[ToolBar] Failed to copy to clipboard');
+  }
 }
 </script>
 
