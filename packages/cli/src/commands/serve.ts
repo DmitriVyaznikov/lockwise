@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import express, { Router } from 'express';
 import type { LockwiseReport } from '@lockwise/core';
+import { createHistoryRouter } from './history.js';
 
 export function loadLatestReport(outputDir: string): LockwiseReport | null {
   const latestPath = path.join(outputDir, 'reports', 'latest.json');
@@ -38,8 +39,9 @@ export function startServer(
 ): { close: () => void } {
   const app = express();
 
-  // API router must be registered before the SPA catch-all
+  // API routers must be registered before the SPA catch-all
   app.use(createApiRouter(outputDir));
+  app.use(createHistoryRouter(outputDir));
 
   if (uiDistPath && fs.existsSync(uiDistPath)) {
     app.use(express.static(uiDistPath));
