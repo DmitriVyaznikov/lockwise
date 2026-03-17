@@ -41,7 +41,6 @@ export async function runAnalyze(options: AnalyzeCliOptions): Promise<AnalyzeRes
   const report = await analyze(parsed, config, {
     onProgress(phase, current, total) {
       spinner.text = `[${phase}] ${current}/${total}`;
-      if (current === 0) spinner.start();
       if (current === total) spinner.succeed(`[${phase}] done`);
     },
   });
