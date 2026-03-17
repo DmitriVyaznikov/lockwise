@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps<{
   searchQuery: string;
@@ -11,6 +11,9 @@ const emit = defineEmits<{
 }>();
 
 const copied = ref(false);
+const uploadPackages = computed(() =>
+  props.nexusUpload ? props.nexusUpload.split(' ') : [],
+);
 
 async function copyUploadList() {
   try {
@@ -34,14 +37,18 @@ async function copyUploadList() {
       :value="searchQuery"
       @input="emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
     />
-    <button
-      v-if="nexusUpload.length > 0"
-      class="copy-btn"
-      :class="{ copied }"
-      @click="copyUploadList"
-    >
-      {{ copied ? 'Copied!' : `Copy upload list (${nexusUpload.split(' ').length})` }}
-    </button>
+    <div v-if="uploadPackages.length > 0" class="upload-section">
+      <button
+        class="copy-btn"
+        :class="{ copied }"
+        @click="copyUploadList"
+      >
+        {{ copied ? 'Copied!' : `Copy (${uploadPackages.length})` }}
+      </button>
+      <div class="upload-preview">
+        <span class="upload-text">{{ uploadPackages.join(', ') }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -91,5 +98,32 @@ async function copyUploadList() {
 .copy-btn.copied {
   border-color: var(--color-success);
   color: var(--color-success);
+}
+
+.upload-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.upload-preview {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow: hidden;
+  mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+}
+
+.upload-text {
+  font-size: 0.8rem;
+  font-family: monospace;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 </style>

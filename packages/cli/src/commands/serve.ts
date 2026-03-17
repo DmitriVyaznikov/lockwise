@@ -45,7 +45,7 @@ export function startServer(
 
   if (uiDistPath && fs.existsSync(uiDistPath)) {
     app.use(express.static(uiDistPath));
-    app.get('*', (_req, res) => {
+    app.get('/{*splat}', (_req, res) => {
       res.sendFile(path.join(uiDistPath, 'index.html'));
     });
   }
