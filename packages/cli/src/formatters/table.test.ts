@@ -29,6 +29,24 @@ const mockPackages: PackageResult[] = [
     nexusAvailable: false,
     semverRange: '^0.1.0',
   },
+  {
+    name: 'mid-vuln',
+    currentVersion: '2.0.0',
+    recommendedVersion: '2.0.1',
+    category: 'maybeVulnerable',
+    vulnerabilities: [{ id: 'GHSA-mid', summary: 'SSRF', cvssScore: 5.5 }],
+    nexusAvailable: true,
+    semverRange: '^2.0.0',
+  },
+  {
+    name: 'low-vuln',
+    currentVersion: '1.0.0',
+    recommendedVersion: '1.0.1',
+    category: 'maybeVulnerable',
+    vulnerabilities: [{ id: 'GHSA-low', summary: 'Info leak', cvssScore: 2.0 }],
+    nexusAvailable: true,
+    semverRange: '^1.0.0',
+  },
 ];
 
 describe('formatTable', () => {
@@ -72,5 +90,15 @@ describe('formatTable', () => {
     const result = formatTable(mockPackages, 'success');
     expect(result).toContain('lodash');
     expect(result).not.toContain('axios');
+  });
+
+  it('should color medium CVSS scores in yellow range', () => {
+    const result = formatTable(mockPackages);
+    expect(result).toContain('5.5');
+  });
+
+  it('should color low CVSS scores as dim', () => {
+    const result = formatTable(mockPackages);
+    expect(result).toContain('2.0');
   });
 });

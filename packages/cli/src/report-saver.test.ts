@@ -68,4 +68,13 @@ describe('saveReport', () => {
       'utf-8',
     );
   });
+
+  it('should create parent directory when explicit output path parent does not exist', () => {
+    mockedFs.existsSync.mockReturnValue(false);
+
+    const filePath = saveReport(mockReport, '.lockwise', '/new-dir/report.json');
+
+    expect(mockedFs.mkdirSync).toHaveBeenCalledWith('/new-dir', { recursive: true });
+    expect(filePath).toBe('/new-dir/report.json');
+  });
 });

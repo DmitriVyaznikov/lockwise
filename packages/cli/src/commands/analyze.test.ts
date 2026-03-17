@@ -169,4 +169,20 @@ describe('runAnalyze', () => {
     const result = await runAnalyze({});
     expect(result.exitCode).toBe(2);
   });
+
+  it('should wire onProgress callback to core analyze', async () => {
+    const core = await import('@lockwise/core');
+    let capturedOnProgress: ((phase: string, current: number, total: number) => void) | undefined;
+    vi.mocked(core.analyze).mockImplementation(async (_parsed, _config, options) => {
+      capturedOnProgress = options?.onProgress;
+      return mockReport;
+    });
+
+    const { runAnalyze } = await import('./analyze.js');
+    await runAnalyze({});
+
+    expect(capturedOnProgress).toBeDefined();
+    capturedOnProgress!('nexus', 0, 10);
+    capturedOnProgress!('nexus', 10, 10);
+  });
 });

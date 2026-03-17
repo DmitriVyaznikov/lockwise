@@ -38,4 +38,10 @@ describe('formatSummary', () => {
     const lines = result.split('\n').filter(Boolean);
     expect(lines.length).toBeGreaterThan(3);
   });
+
+  it('should display zero when no packages need uploading', () => {
+    const report: LockwiseReport = { ...mockReport, nexusUpload: [] };
+    const result = formatSummary(report);
+    expect(result).toContain('0');
+  });
 });
