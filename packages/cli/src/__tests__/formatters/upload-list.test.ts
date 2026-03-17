@@ -7,19 +7,15 @@ describe('formatUploadList', () => {
     expect(result).toContain('All packages are available');
   });
 
-  it('should list all URLs when packages need uploading', () => {
-    const urls = [
-      'http://nexus/repository/npm/-/lodash-4.17.21.tgz',
-      'http://nexus/repository/npm/-/axios-1.6.2.tgz',
-    ];
-    const result = formatUploadList(urls);
-    expect(result).toContain('lodash-4.17.21.tgz');
-    expect(result).toContain('axios-1.6.2.tgz');
+  it('should output space-separated name@version entries', () => {
+    const packages = ['lodash@4.17.21', 'axios@1.6.2'];
+    const result = formatUploadList(packages);
+    expect(result).toContain('lodash@4.17.21 axios@1.6.2');
   });
 
   it('should include header with count', () => {
-    const urls = ['http://nexus/a.tgz', 'http://nexus/b.tgz'];
-    const result = formatUploadList(urls);
+    const packages = ['a@1.0.0', 'b@2.0.0'];
+    const result = formatUploadList(packages);
     expect(result).toContain('2');
   });
 });

@@ -80,7 +80,7 @@ describe('analyze', () => {
     expect(report.nexusUpload.length).toBeGreaterThan(0);
   });
 
-  it('should include recommended version tarball URLs in nexusUpload', async () => {
+  it('should include recommended version in nexusUpload as name@version', async () => {
     const parsedLockfile: ParsedLockfile = {
       type: 'npm',
       packages: [{ name: 'foo', version: '1.0.0' }],
@@ -100,13 +100,11 @@ describe('analyze', () => {
     });
 
     const report = await analyze(parsedLockfile, config);
-    const currentUrl = `${config.nexusUrl}/foo/-/foo-1.0.0.tgz`;
-    const recommendedUrl = `${config.nexusUrl}/foo/-/foo-1.2.0.tgz`;
-    expect(report.nexusUpload).toContain(currentUrl);
-    expect(report.nexusUpload).toContain(recommendedUrl);
+    expect(report.nexusUpload).toContain('foo@1.0.0');
+    expect(report.nexusUpload).toContain('foo@1.2.0');
   });
 
-  it('should not duplicate tarball URLs when recommended equals current', async () => {
+  it('should not duplicate entries when recommended equals current', async () => {
     const parsedLockfile: ParsedLockfile = {
       type: 'npm',
       packages: [{ name: 'bar', version: '2.0.0' }],
@@ -126,8 +124,7 @@ describe('analyze', () => {
     });
 
     const report = await analyze(parsedLockfile, config);
-    const url = `${config.nexusUrl}/bar/-/bar-2.0.0.tgz`;
-    expect(report.nexusUpload.filter((u) => u === url)).toHaveLength(1);
+    expect(report.nexusUpload.filter((u) => u === 'bar@2.0.0')).toHaveLength(1);
   });
 
   it('should categorize as unavailable when registry returns null', async () => {

@@ -67,7 +67,7 @@ export async function analyze(
     },
     packages: packageResults,
     summary,
-    nexusUpload: buildNexusUploadList(unavailablePackages, packageResults, config.nexusUrl),
+    nexusUpload: buildNexusUploadList(unavailablePackages, packageResults),
   };
 }
 
@@ -197,18 +197,17 @@ async function checkAllNexus(
 function buildNexusUploadList(
   unavailablePackages: NexusCheckResult[],
   packageResults: PackageResult[],
-  nexusUrl: string,
 ): string[] {
-  const urls = new Set<string>();
+  const items = new Set<string>();
   for (const pkg of unavailablePackages) {
-    urls.add(pkg.tarballUrl);
+    items.add(`${pkg.name}@${pkg.version}`);
   }
   for (const result of packageResults) {
     if (result.recommendedVersion && result.recommendedVersion !== result.currentVersion) {
-      urls.add(buildNexusTarballUrl(result.name, result.recommendedVersion, nexusUrl));
+      items.add(`${result.name}@${result.recommendedVersion}`);
     }
   }
-  return [...urls];
+  return [...items];
 }
 
 function buildSummary(results: PackageResult[]): LockwiseReport['summary'] {

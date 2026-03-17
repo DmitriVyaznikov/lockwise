@@ -9,7 +9,7 @@ export function formatUploadList(nexusUpload: string[]): string {
     '',
     chalk.bold.underline(`Packages to upload to Nexus (${nexusUpload.length}):`),
     '',
-    ...nexusUpload.map((url) => `  ${chalk.dim('•')} ${url}`),
+    `  ${nexusUpload.join(' ')}`,
     '',
   ];
 

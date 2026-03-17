@@ -14,7 +14,7 @@ const copied = ref(false);
 
 async function copyUploadList() {
   try {
-    const text = props.nexusUpload.join('\n');
+    const text = props.nexusUpload.join(' ');
     await navigator.clipboard.writeText(text);
     copied.value = true;
     setTimeout(() => {
