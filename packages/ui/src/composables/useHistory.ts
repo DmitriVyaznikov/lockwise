@@ -1,34 +1,7 @@
 import { ref, computed } from 'vue';
+import type { DiffResult, ReportListItem } from '@lockwise/core';
 
-export interface ReportListItem {
-  readonly filename: string;
-  readonly meta: {
-    readonly lockfileType: string;
-    readonly analyzedAt: string;
-    readonly totalPackages: number;
-  };
-  readonly summary: {
-    readonly success: number;
-    readonly due1month: number;
-    readonly mixed: number;
-    readonly maybeVulnerable: number;
-    readonly unavailable: number;
-  };
-}
-
-export interface DiffChangedItem {
-  readonly name: string;
-  readonly wasCategory: string;
-  readonly nowCategory: string;
-  readonly wasVersion: string;
-  readonly nowVersion: string;
-}
-
-export interface DiffResult {
-  readonly added: { readonly name: string; readonly currentVersion: string; readonly category: string }[];
-  readonly removed: { readonly name: string; readonly currentVersion: string; readonly category: string }[];
-  readonly changed: DiffChangedItem[];
-}
+export type { DiffResult, ReportListItem };
 
 type HistoryState =
   | { status: 'idle' }
@@ -42,10 +15,10 @@ type DiffState =
   | { status: 'loaded'; diff: DiffResult }
   | { status: 'error'; message: string };
 
-export function useHistory() {
-  const state = ref<HistoryState>({ status: 'idle' });
-  const diffState = ref<DiffState>({ status: 'idle' });
+const state = ref<HistoryState>({ status: 'idle' });
+const diffState = ref<DiffState>({ status: 'idle' });
 
+export function useHistory() {
   async function fetchReports() {
     state.value = { status: 'loading' };
     try {

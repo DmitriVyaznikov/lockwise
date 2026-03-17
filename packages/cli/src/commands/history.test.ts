@@ -106,6 +106,41 @@ describe('computeDiff', () => {
     const changedNames = diff.changed.map((c) => c.name);
     expect(changedNames).not.toContain('lodash');
   });
+
+  it('should detect version-only changes without category change', () => {
+    const from = makeReport({
+      packages: [
+        {
+          name: 'lodash',
+          currentVersion: '4.17.20',
+          category: 'success',
+          vulnerabilities: [],
+          nexusAvailable: true,
+        },
+      ],
+    });
+    const to = makeReport({
+      packages: [
+        {
+          name: 'lodash',
+          currentVersion: '4.17.21',
+          category: 'success',
+          vulnerabilities: [],
+          nexusAvailable: true,
+        },
+      ],
+    });
+    const diff = computeDiff(from, to);
+    expect(diff.changed).toEqual([
+      expect.objectContaining({
+        name: 'lodash',
+        wasCategory: 'success',
+        nowCategory: 'success',
+        wasVersion: '4.17.20',
+        nowVersion: '4.17.21',
+      }),
+    ]);
+  });
 });
 
 describe('GET /api/reports', () => {

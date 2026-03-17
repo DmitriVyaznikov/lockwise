@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { DiffResult } from '../composables/useHistory';
+import type { DiffResult } from '@lockwise/core';
+import CategoryBadge from './CategoryBadge.vue';
 
 defineProps<{
   diff: DiffResult;
@@ -27,9 +28,7 @@ defineProps<{
               <td><code>{{ pkg.name }}</code></td>
               <td><code>{{ pkg.currentVersion }}</code></td>
               <td>
-                <span class="category-badge" :data-category="pkg.category">
-                  {{ pkg.category }}
-                </span>
+                <CategoryBadge :category="pkg.category" />
               </td>
             </tr>
           </tbody>
@@ -56,9 +55,7 @@ defineProps<{
               <td><code>{{ pkg.name }}</code></td>
               <td><code>{{ pkg.currentVersion }}</code></td>
               <td>
-                <span class="category-badge" :data-category="pkg.category">
-                  {{ pkg.category }}
-                </span>
+                <CategoryBadge :category="pkg.category" />
               </td>
             </tr>
           </tbody>
@@ -69,7 +66,7 @@ defineProps<{
     <!-- Changed Category -->
     <section v-if="diff.changed.length > 0" class="diff-section">
       <h4 class="diff-heading changed-heading">
-        Changed Category ({{ diff.changed.length }})
+        Changed ({{ diff.changed.length }})
       </h4>
       <div class="table-wrapper">
         <table class="diff-table">
@@ -85,14 +82,10 @@ defineProps<{
             <tr v-for="item in diff.changed" :key="item.name" class="row-changed">
               <td><code>{{ item.name }}</code></td>
               <td>
-                <span class="category-badge" :data-category="item.wasCategory">
-                  {{ item.wasCategory }}
-                </span>
+                <CategoryBadge :category="item.wasCategory" />
               </td>
               <td>
-                <span class="category-badge" :data-category="item.nowCategory">
-                  {{ item.nowCategory }}
-                </span>
+                <CategoryBadge :category="item.nowCategory" />
               </td>
               <td>
                 <code v-if="item.wasVersion !== item.nowVersion">
@@ -189,34 +182,6 @@ defineProps<{
 
 .row-changed {
   background: color-mix(in srgb, var(--color-warning) 5%, transparent);
-}
-
-.category-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.category-badge[data-category='success'] {
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  color: var(--color-success);
-}
-.category-badge[data-category='due1month'] {
-  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
-  color: var(--color-warning);
-}
-.category-badge[data-category='mixed'] {
-  background: color-mix(in srgb, var(--color-mixed) 20%, transparent);
-  color: var(--color-mixed);
-}
-.category-badge[data-category='maybeVulnerable'] {
-  background: color-mix(in srgb, var(--color-error) 20%, transparent);
-  color: var(--color-error);
-}
-.category-badge[data-category='unavailable'] {
-  background: color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
-  color: var(--color-text-secondary);
 }
 
 .no-change {

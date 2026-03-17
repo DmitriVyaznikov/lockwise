@@ -54,8 +54,8 @@ function selectionLabel(filename: string): string | null {
 }
 
 async function compare() {
-  if (!canCompare.value) return;
-  await fetchDiff(selectedFrom.value!, selectedTo.value!);
+  if (!selectedFrom.value || !selectedTo.value) return;
+  await fetchDiff(selectedFrom.value, selectedTo.value);
 }
 
 function formatDate(isoDate: string): string {

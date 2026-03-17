@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useReport } from '../composables/useReport';
 import type { PackageResult } from '@lockwise/core';
+import CategoryBadge from '../components/CategoryBadge.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,6 +21,14 @@ function cvssColor(score: number): string {
   if (score >= 7) return 'var(--color-error)';
   if (score >= 4) return 'var(--color-warning)';
   return 'var(--color-success)';
+}
+
+function formatDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 function goBack() {
@@ -54,12 +63,7 @@ function goBack() {
               <span class="meta-label">Range:</span>
               <code>{{ pkg.semverRange }}</code>
             </span>
-            <span
-              class="category-badge"
-              :data-category="pkg.category"
-            >
-              {{ pkg.category }}
-            </span>
+            <CategoryBadge :category="pkg.category" />
             <span :class="pkg.nexusAvailable ? 'nexus-yes' : 'nexus-no'">
               Nexus: {{ pkg.nexusAvailable ? 'Available' : 'Unavailable' }}
             </span>
@@ -96,7 +100,7 @@ function goBack() {
                   <span v-if="v.version === pkg.currentVersion" class="version-tag current-tag">current</span>
                   <span v-if="v.version === pkg.recommendedVersion" class="version-tag recommended-tag">recommended</span>
                 </td>
-                <td>{{ new Date(v.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }}</td>
+                <td>{{ formatDate(v.publishedAt) }}</td>
                 <td>
                   <span :class="v.isInNexus ? 'nexus-yes' : 'nexus-no'">
                     {{ v.isInNexus ? 'Yes' : 'No' }}
@@ -204,6 +208,7 @@ function goBack() {
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: 0.85rem;
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
@@ -338,34 +343,6 @@ function goBack() {
 .recommended-tag {
   background: color-mix(in srgb, var(--color-success) 20%, transparent);
   color: var(--color-success);
-}
-
-.category-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.category-badge[data-category='success'] {
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  color: var(--color-success);
-}
-.category-badge[data-category='due1month'] {
-  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
-  color: var(--color-warning);
-}
-.category-badge[data-category='mixed'] {
-  background: color-mix(in srgb, var(--color-mixed) 20%, transparent);
-  color: var(--color-mixed);
-}
-.category-badge[data-category='maybeVulnerable'] {
-  background: color-mix(in srgb, var(--color-error) 20%, transparent);
-  color: var(--color-error);
-}
-.category-badge[data-category='unavailable'] {
-  background: color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
-  color: var(--color-text-secondary);
 }
 
 .nexus-yes { color: var(--color-success); }

@@ -1,25 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Router } from 'express';
-import type { LockwiseReport, PackageResult } from '@lockwise/core';
-
-export interface ReportListItem {
-  readonly filename: string;
-  readonly meta: LockwiseReport['meta'];
-  readonly summary: LockwiseReport['summary'];
-}
-
-export interface DiffResult {
-  readonly added: PackageResult[];
-  readonly removed: PackageResult[];
-  readonly changed: {
-    readonly name: string;
-    readonly wasCategory: string;
-    readonly nowCategory: string;
-    readonly wasVersion: string;
-    readonly nowVersion: string;
-  }[];
-}
+import type { LockwiseReport, PackageResult, DiffResult, ReportListItem } from '@lockwise/core';
 
 export function computeDiff(from: LockwiseReport, to: LockwiseReport): DiffResult {
   const fromMap = new Map(from.packages.map((p) => [p.name, p]));
@@ -44,7 +26,7 @@ export function computeDiff(from: LockwiseReport, to: LockwiseReport): DiffResul
   for (const [name, fromPkg] of fromMap) {
     const toPkg = toMap.get(name);
     if (!toPkg) continue;
-    if (fromPkg.category !== toPkg.category) {
+    if (fromPkg.category !== toPkg.category || fromPkg.currentVersion !== toPkg.currentVersion) {
       changed.push({
         name,
         wasCategory: fromPkg.category,

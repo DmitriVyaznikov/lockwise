@@ -1,6 +1,7 @@
 export type {
   PackageCategory, VulnInfo, PackageEntry, ParsedLockfile, RawPackageData,
   RangeEntry, VersionSelection, VersionInfo, ConsumerInfo, PackageResult, LockwiseReport, LockwiseConfig,
+  DiffChangedItem, DiffResult, ReportListItem,
 } from './types.js';
 export { DEFAULT_CONFIG } from './types.js';
 export { analyze } from './analyzer/index.js';

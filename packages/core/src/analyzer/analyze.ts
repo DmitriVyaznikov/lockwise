@@ -110,7 +110,7 @@ function buildAvailableVersions(
     .sort((a, b) => semver.compare(a, b))
     .map((v) => ({
       version: v,
-      publishedAt: registryData.time[v] ?? new Date().toISOString(),
+      publishedAt: registryData.time[v] ?? '',
       isInNexus: nexusStatusMap.get(`${packageName}@${v}`)?.status === 200,
     }));
 }

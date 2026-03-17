@@ -100,6 +100,29 @@ export interface LockwiseConfig {
   readonly outputDir: string;
 }
 
+/** Changed item in a diff between two reports */
+export interface DiffChangedItem {
+  readonly name: string;
+  readonly wasCategory: string;
+  readonly nowCategory: string;
+  readonly wasVersion: string;
+  readonly nowVersion: string;
+}
+
+/** Diff result between two reports */
+export interface DiffResult {
+  readonly added: PackageResult[];
+  readonly removed: PackageResult[];
+  readonly changed: DiffChangedItem[];
+}
+
+/** Summary item for report list */
+export interface ReportListItem {
+  readonly filename: string;
+  readonly meta: LockwiseReport['meta'];
+  readonly summary: LockwiseReport['summary'];
+}
+
 export const DEFAULT_CONFIG = {
   nexusUrl: 'REDACTED',
   publicRegistry: 'https://registry.npmjs.org',

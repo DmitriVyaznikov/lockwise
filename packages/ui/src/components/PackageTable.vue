@@ -10,6 +10,7 @@ import type { SortingState } from '@tanstack/vue-table';
 import { RouterLink } from 'vue-router';
 import { ref } from 'vue';
 import type { PackageResult } from '@lockwise/core';
+import CategoryBadge from './CategoryBadge.vue';
 
 const props = defineProps<{
   packages: PackageResult[];
@@ -113,13 +114,12 @@ const table = useVueTable({
             >
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </RouterLink>
-            <span
+            <CategoryBadge
               v-else-if="cell.column.id === 'category'"
-              class="category-badge"
-              :data-category="cell.getValue()"
+              :category="(cell.getValue() as string)"
             >
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-            </span>
+            </CategoryBadge>
             <span
               v-else-if="cell.column.id === 'nexusAvailable'"
               :class="cell.getValue() ? 'nexus-yes' : 'nexus-no'"
@@ -190,34 +190,6 @@ const table = useVueTable({
 
 .sort-indicator {
   font-size: 0.75rem;
-}
-
-.category-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.category-badge[data-category='success'] {
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  color: var(--color-success);
-}
-.category-badge[data-category='due1month'] {
-  background: color-mix(in srgb, var(--color-warning) 20%, transparent);
-  color: var(--color-warning);
-}
-.category-badge[data-category='mixed'] {
-  background: color-mix(in srgb, var(--color-mixed) 20%, transparent);
-  color: var(--color-mixed);
-}
-.category-badge[data-category='maybeVulnerable'] {
-  background: color-mix(in srgb, var(--color-error) 20%, transparent);
-  color: var(--color-error);
-}
-.category-badge[data-category='unavailable'] {
-  background: color-mix(in srgb, var(--color-text-secondary) 20%, transparent);
-  color: var(--color-text-secondary);
 }
 
 .nexus-yes { color: var(--color-success); }

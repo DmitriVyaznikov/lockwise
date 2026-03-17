@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import type { ReportListItem } from '../composables/useHistory';
+import type { ReportListItem } from '@lockwise/core';
 
 ChartJS.register(
   CategoryScale,
@@ -27,6 +27,14 @@ const props = defineProps<{
   reports: ReportListItem[];
 }>();
 
+function getCSSColor(varName: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
+function withAlpha(color: string, alpha: number): string {
+  return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`;
+}
+
 const chartData = computed(() => {
   const sorted = [...props.reports].reverse();
 
@@ -37,14 +45,20 @@ const chartData = computed(() => {
     }),
   );
 
+  const successColor = getCSSColor('--color-success');
+  const warningColor = getCSSColor('--color-warning');
+  const mixedColor = getCSSColor('--color-mixed');
+  const errorColor = getCSSColor('--color-error');
+  const secondaryColor = getCSSColor('--color-text-secondary');
+
   return {
     labels,
     datasets: [
       {
         label: 'Success',
         data: sorted.map((r) => r.summary.success),
-        backgroundColor: 'rgba(34, 197, 94, 0.2)',
-        borderColor: '#22c55e',
+        backgroundColor: withAlpha(successColor, 0.2),
+        borderColor: successColor,
         borderWidth: 2,
         fill: true,
         tension: 0.3,
@@ -53,8 +67,8 @@ const chartData = computed(() => {
       {
         label: 'Due (<30d)',
         data: sorted.map((r) => r.summary.due1month),
-        backgroundColor: 'rgba(234, 179, 8, 0.2)',
-        borderColor: '#eab308',
+        backgroundColor: withAlpha(warningColor, 0.2),
+        borderColor: warningColor,
         borderWidth: 2,
         fill: true,
         tension: 0.3,
@@ -63,8 +77,8 @@ const chartData = computed(() => {
       {
         label: 'Mixed',
         data: sorted.map((r) => r.summary.mixed),
-        backgroundColor: 'rgba(168, 85, 247, 0.2)',
-        borderColor: '#a855f7',
+        backgroundColor: withAlpha(mixedColor, 0.2),
+        borderColor: mixedColor,
         borderWidth: 2,
         fill: true,
         tension: 0.3,
@@ -73,8 +87,18 @@ const chartData = computed(() => {
       {
         label: 'Vulnerable',
         data: sorted.map((r) => r.summary.maybeVulnerable),
-        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-        borderColor: '#ef4444',
+        backgroundColor: withAlpha(errorColor, 0.2),
+        borderColor: errorColor,
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+      },
+      {
+        label: 'Unavailable',
+        data: sorted.map((r) => r.summary.unavailable),
+        backgroundColor: withAlpha(secondaryColor, 0.2),
+        borderColor: secondaryColor,
         borderWidth: 2,
         fill: true,
         tension: 0.3,
@@ -110,6 +134,7 @@ const chartOptions = {
   },
   scales: {
     x: {
+      stacked: true,
       grid: {
         color: 'rgba(51, 65, 85, 0.5)',
       },
