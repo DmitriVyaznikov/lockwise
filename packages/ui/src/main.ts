@@ -11,6 +11,17 @@ const router = createRouter({
       name: 'dashboard',
       component: () => import('./pages/DashboardPage.vue'),
     },
+    {
+      path: '/package/:name(.*)',
+      name: 'package-detail',
+      component: () => import('./pages/PackageDetailPage.vue'),
+      props: true,
+    },
+    {
+      path: '/history',
+      name: 'history',
+      component: () => import('./pages/HistoryPage.vue'),
+    },
   ],
 });
 
