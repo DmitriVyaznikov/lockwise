@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useHistory } from '../composables/useHistory';
 import DiffView from '../components/DiffView.vue';
+import TrendChart from '../components/TrendChart.vue';
 
 const {
   reports,
@@ -77,6 +78,12 @@ onMounted(fetchReports);
     <div v-if="isLoading" class="state-message">Loading reports...</div>
     <div v-else-if="error" class="state-message error">Error: {{ error }}</div>
     <template v-else>
+      <!-- Trend Chart -->
+      <section class="history-section">
+        <h3>Category Trend</h3>
+        <TrendChart :reports="reports" />
+      </section>
+
       <!-- Run List Table -->
       <section class="history-section">
         <div class="table-header">

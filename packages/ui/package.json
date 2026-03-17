@@ -11,12 +11,16 @@
   "dependencies": {
     "@lockwise/core": "*",
     "@tanstack/vue-table": "^8.21.0",
+    "chart.js": "^4.5.1",
     "vue": "^3.4.0",
+    "vue-chartjs": "^5.3.3",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.0",
-    "vue-tsc": "^2.2.0",
-    "typescript": "^5.7.0"
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^29.0.0",
+    "typescript": "^5.7.0",
+    "vue-tsc": "^2.2.0"
   }
 }
