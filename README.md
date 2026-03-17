@@ -153,6 +153,8 @@ packages/
 ## Development
 
 ```bash
+npm install              # Install dependencies (npm workspaces)
+npm run build            # Build core + cli
 npm run dev              # UI dev server (Vite)
 npm run test             # Run all tests (Vitest)
 npm run test:core        # Core tests only
@@ -163,6 +165,29 @@ npm run type-check       # TypeScript check
 npm run final            # tests + lint + type-check
 npm run coverage         # Coverage report
 ```
+
+### Local usage without publishing
+
+The project uses npm workspaces, so packages resolve each other locally. After building, you can run the CLI directly from the monorepo root:
+
+```bash
+npm run build
+npx lockwise analyze
+```
+
+To use the CLI in another project via `npm link`:
+
+```bash
+# In the lockwise monorepo
+cd packages/cli
+npm link
+
+# In your target project
+npm link @lockwise/cli
+lockwise analyze --nexus-url http://your-nexus/repository/npm-group
+```
+
+Changes to TypeScript source require a rebuild (`npm run build`) to take effect.
 
 ## Tech Stack
 
