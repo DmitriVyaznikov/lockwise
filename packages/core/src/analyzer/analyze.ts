@@ -1,10 +1,14 @@
 import pLimit from 'p-limit';
+import semver from 'semver';
 import type {
   ParsedLockfile,
   LockwiseConfig,
   LockwiseReport,
   PackageResult,
   VulnInfo,
+  VersionInfo,
+  ConsumerInfo,
+  RangeEntry,
 } from '../types.js';
 import { buildNexusTarballUrl, checkNexusAvailability } from '../checkers/nexus-checker.js';
 import { checkVulnerabilities } from '../checkers/osv-checker.js';
@@ -93,6 +97,33 @@ async function fetchAllRegistryData(
   return cache;
 }
 
+function buildAvailableVersions(
+  packageName: string,
+  range: string,
+  registryData: RegistryData | null,
+  nexusStatusMap: Map<string, NexusCheckResult>,
+): VersionInfo[] {
+  if (registryData === null) return [];
+
+  return Object.keys(registryData.versions)
+    .filter((v) => semver.satisfies(v, range))
+    .sort((a, b) => semver.compare(a, b))
+    .map((v) => ({
+      version: v,
+      publishedAt: registryData.time[v] ?? new Date().toISOString(),
+      isInNexus: nexusStatusMap.get(`${packageName}@${v}`)?.status === 200,
+    }));
+}
+
+function buildConsumers(
+  packageName: string,
+  rangeMap: Map<string, RangeEntry[]>,
+): ConsumerInfo[] {
+  const entries = rangeMap.get(packageName);
+  if (!entries || entries.length === 0) return [];
+  return entries.map((e) => ({ name: e.from, range: e.range }));
+}
+
 function buildPackageResults(
   packages: ParsedLockfile['packages'],
   nexusStatusMap: Map<string, NexusCheckResult>,
@@ -114,6 +145,9 @@ function buildPackageResults(
     const vulnEntry = vulnMap.get(purl);
     const vulnerabilities: VulnInfo[] = vulnEntry?.vulnerabilities ?? [];
 
+    const availableVersions = buildAvailableVersions(pkg.name, range, registryData, nexusStatusMap);
+    const consumers = buildConsumers(pkg.name, rangeMap);
+
     if (selection === null) {
       return {
         name: pkg.name,
@@ -122,6 +156,8 @@ function buildPackageResults(
         vulnerabilities,
         nexusAvailable,
         semverRange: range,
+        availableVersions,
+        consumers,
       };
     }
 
@@ -133,6 +169,8 @@ function buildPackageResults(
       vulnerabilities,
       nexusAvailable,
       semverRange: range,
+      availableVersions,
+      consumers,
     };
   });
 }

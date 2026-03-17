@@ -47,6 +47,19 @@ export interface VersionSelection {
   readonly category: PackageCategory;
 }
 
+/** Version info for package detail timeline */
+export interface VersionInfo {
+  readonly version: string;
+  readonly publishedAt: string;
+  readonly isInNexus: boolean;
+}
+
+/** Consumer info -- who depends on this package */
+export interface ConsumerInfo {
+  readonly name: string;
+  readonly range: string;
+}
+
 /** Single package analysis result */
 export interface PackageResult {
   readonly name: string;
@@ -56,6 +69,8 @@ export interface PackageResult {
   readonly vulnerabilities: VulnInfo[];
   readonly nexusAvailable: boolean;
   readonly semverRange?: string;
+  readonly availableVersions?: VersionInfo[];
+  readonly consumers?: ConsumerInfo[];
 }
 
 /** Analysis report */
