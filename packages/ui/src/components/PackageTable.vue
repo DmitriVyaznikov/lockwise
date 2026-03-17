@@ -85,7 +85,9 @@ const table = useVueTable({
           <th
             v-for="header in headerGroup.headers"
             :key="header.id"
+            role="columnheader"
             :class="{ sortable: header.column.getCanSort() }"
+            :aria-sort="header.column.getIsSorted() === 'asc' ? 'ascending' : header.column.getIsSorted() === 'desc' ? 'descending' : 'none'"
             @click="header.column.getToggleSortingHandler()?.($event)"
           >
             <div class="th-content">

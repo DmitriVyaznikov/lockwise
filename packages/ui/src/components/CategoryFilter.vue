@@ -34,6 +34,8 @@ function getCount(key: CategoryKey): number | undefined {
       class="chip"
       :class="{ active: active === chip.key }"
       :style="{ '--chip-color': chip.color }"
+      :aria-pressed="active === chip.key"
+      :aria-label="`Filter by ${chip.label}${getCount(chip.key) !== undefined ? ` (${getCount(chip.key)})` : ''}`"
       @click="emit('select', chip.key)"
     >
       {{ chip.label }}
