@@ -1,0 +1,9 @@
+{
+  "name": "@lockwise/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": { "lockwise": "./dist/index.js" },
+  "scripts": { "build": "tsc -p tsconfig.build.json" },
+  "dependencies": { "@lockwise/core": "*" },
+  "devDependencies": { "@types/node": "^22.0.0" }
+}
