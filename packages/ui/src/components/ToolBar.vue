@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 const props = defineProps<{
   searchQuery: string;
-  nexusUpload: string[];
+  nexusUpload: string;
 }>();
 
 const emit = defineEmits<{
@@ -14,8 +14,7 @@ const copied = ref(false);
 
 async function copyUploadList() {
   try {
-    const text = props.nexusUpload.join(' ');
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(props.nexusUpload);
     copied.value = true;
     setTimeout(() => {
       copied.value = false;
@@ -41,7 +40,7 @@ async function copyUploadList() {
       :class="{ copied }"
       @click="copyUploadList"
     >
-      {{ copied ? 'Copied!' : `Copy upload list (${nexusUpload.length})` }}
+      {{ copied ? 'Copied!' : `Copy upload list (${nexusUpload.split(' ').length})` }}
     </button>
   </div>
 </template>

@@ -55,7 +55,7 @@ const mockReport: LockwiseReport = {
     },
   ],
   summary: { success: 5, due1month: 0, mixed: 0, maybeVulnerable: 0, unavailable: 0 },
-  nexusUpload: [],
+  nexusUpload: '',
 };
 
 describe('runAnalyze', () => {

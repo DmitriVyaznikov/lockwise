@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { resolveExitCode } from '../exit-code.js';
 import type { LockwiseReport } from '@lockwise/core';
 
-function makeReport(overrides: Partial<LockwiseReport['summary']> = {}, nexusUpload: string[] = []): LockwiseReport {
+function makeReport(overrides: Partial<LockwiseReport['summary']> = {}, nexusUpload = ''): LockwiseReport {
   return {
     meta: { lockfileType: 'npm', analyzedAt: '', totalPackages: 0 },
     packages: [],
@@ -18,7 +18,7 @@ describe('resolveExitCode', () => {
   });
 
   it('should return 1 when there are packages to upload but no vulnerabilities', () => {
-    const report = makeReport({ success: 8, due1month: 2 }, ['http://nexus/pkg.tgz']);
+    const report = makeReport({ success: 8, due1month: 2 }, 'pkg@1.0.0');
     expect(resolveExitCode(report)).toBe(1);
   });
 
@@ -35,7 +35,7 @@ describe('resolveExitCode', () => {
   it('should prioritize exit code 2 over 1', () => {
     const report = makeReport(
       { success: 3, maybeVulnerable: 1, due1month: 1 },
-      ['http://nexus/pkg.tgz'],
+      'pkg@1.0.0',
     );
     expect(resolveExitCode(report)).toBe(2);
   });

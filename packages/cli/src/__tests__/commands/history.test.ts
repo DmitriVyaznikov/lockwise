@@ -29,7 +29,7 @@ const makeReport = (overrides: Partial<LockwiseReport> = {}): LockwiseReport => 
     },
   ],
   summary: { success: 1, due1month: 1, mixed: 0, maybeVulnerable: 0, unavailable: 0 },
-  nexusUpload: [],
+  nexusUpload: '',
   ...overrides,
 });
 

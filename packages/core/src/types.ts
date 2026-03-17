@@ -88,7 +88,7 @@ export interface LockwiseReport {
     readonly maybeVulnerable: number;
     readonly unavailable: number;
   };
-  readonly nexusUpload: string[];
+  readonly nexusUpload: string;
 }
 
 /** Configuration */

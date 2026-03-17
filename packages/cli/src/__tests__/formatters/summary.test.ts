@@ -6,7 +6,7 @@ const mockReport: LockwiseReport = {
   meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 25 },
   packages: [],
   summary: { success: 15, due1month: 5, mixed: 3, maybeVulnerable: 2, unavailable: 0 },
-  nexusUpload: ['http://nexus/a.tgz', 'http://nexus/b.tgz'],
+  nexusUpload: 'a@1.0.0 b@2.0.0',
 };
 
 describe('formatSummary', () => {
@@ -40,7 +40,7 @@ describe('formatSummary', () => {
   });
 
   it('should display zero when no packages need uploading', () => {
-    const report: LockwiseReport = { ...mockReport, nexusUpload: [] };
+    const report: LockwiseReport = { ...mockReport, nexusUpload: '' };
     const result = formatSummary(report);
     expect(result).toContain('0');
   });

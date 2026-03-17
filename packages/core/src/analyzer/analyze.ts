@@ -67,7 +67,7 @@ export async function analyze(
     },
     packages: packageResults,
     summary,
-    nexusUpload: buildNexusUploadList(unavailablePackages, packageResults),
+    nexusUpload: buildNexusUploadList(unavailablePackages, packageResults).join(' '),
   };
 }
 

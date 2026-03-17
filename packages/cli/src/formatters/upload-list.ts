@@ -1,15 +1,17 @@
 import chalk from 'chalk';
 
-export function formatUploadList(nexusUpload: string[]): string {
+export function formatUploadList(nexusUpload: string): string {
   if (nexusUpload.length === 0) {
-    return chalk.green('\n  ✓ All packages are available in Nexus.\n');
+    return chalk.green('\n  \u2713 All packages are available in Nexus.\n');
   }
+
+  const count = nexusUpload.split(' ').length;
 
   const lines: string[] = [
     '',
-    chalk.bold.underline(`Packages to upload to Nexus (${nexusUpload.length}):`),
+    chalk.bold.underline(`Packages to upload to Nexus (${count}):`),
     '',
-    `  ${nexusUpload.join(' ')}`,
+    `  ${nexusUpload}`,
     '',
   ];
 

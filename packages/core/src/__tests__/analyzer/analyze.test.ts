@@ -124,7 +124,7 @@ describe('analyze', () => {
     });
 
     const report = await analyze(parsedLockfile, config);
-    expect(report.nexusUpload.filter((u) => u === 'bar@2.0.0')).toHaveLength(1);
+    expect(report.nexusUpload.split(' ').filter((u) => u === 'bar@2.0.0')).toHaveLength(1);
   });
 
   it('should categorize as unavailable when registry returns null', async () => {

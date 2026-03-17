@@ -10,7 +10,7 @@ const mockReport: LockwiseReport = {
   meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 2 },
   packages: [],
   summary: { success: 1, due1month: 1, mixed: 0, maybeVulnerable: 0, unavailable: 0 },
-  nexusUpload: [],
+  nexusUpload: '',
 };
 
 describe('saveReport', () => {

@@ -19,7 +19,7 @@ export function formatSummary(report: LockwiseReport): string {
     `  ${chalk.red('\u2717')} Vulnerable:       ${chalk.red.bold(String(summary.maybeVulnerable))}`,
     `  ${chalk.gray('?')} Unavailable:      ${chalk.gray.bold(String(summary.unavailable))}`,
     '',
-    `  ${chalk.bold('Nexus upload:')}  ${nexusUpload.length > 0 ? chalk.yellow.bold(String(nexusUpload.length)) : chalk.green('0')} packages`,
+    `  ${chalk.bold('Nexus upload:')}  ${nexusUpload.length > 0 ? chalk.yellow.bold(String(nexusUpload.split(' ').length)) : chalk.green('0')} packages`,
     '',
   ];
 
