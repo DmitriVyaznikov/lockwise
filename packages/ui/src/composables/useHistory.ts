@@ -26,8 +26,8 @@ export function useHistory() {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      const reports: ReportListItem[] = await response.json();
-      state.value = { status: 'loaded', reports };
+      const data: { items: ReportListItem[] } = await response.json();
+      state.value = { status: 'loaded', reports: data.items };
     } catch (error) {
       state.value = {
         status: 'error',

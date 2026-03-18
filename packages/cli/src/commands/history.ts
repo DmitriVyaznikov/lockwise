@@ -1,7 +1,10 @@
-import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { Router } from 'express';
 import type { LockwiseReport, PackageResult, DiffResult, ReportListItem } from '@lockwise/core';
+
+const MAX_PAGE_LIMIT = 500;
+const DEFAULT_PAGE_LIMIT = 100;
 
 export function computeDiff(from: LockwiseReport, to: LockwiseReport): DiffResult {
   const fromMap = new Map(from.packages.map((p) => [p.name, p]));
@@ -44,12 +47,9 @@ function isValidFilename(filename: string): boolean {
   return /^[\w\-.]+\.json$/.test(filename) && !filename.includes('..');
 }
 
-function loadReport(reportsDir: string, filename: string): LockwiseReport | null {
-  const filePath = path.join(reportsDir, filename);
-  if (!fs.existsSync(filePath)) return null;
-
+async function loadReport(reportsDir: string, filename: string): Promise<LockwiseReport | null> {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = await fsp.readFile(path.join(reportsDir, filename), 'utf-8');
     return JSON.parse(content) as LockwiseReport;
   } catch {
     return null;
@@ -61,7 +61,7 @@ export function createHistoryRouter(outputDir: string): Router {
   const reportsDir = path.join(outputDir, 'reports');
 
   // IMPORTANT: /diff must be before /:filename to avoid matching 'diff' as a filename
-  router.get('/api/reports/diff', (req, res) => {
+  router.get('/api/reports/diff', async (req, res) => {
     const from = req.query.from as string | undefined;
     const to = req.query.to as string | undefined;
 
@@ -75,8 +75,8 @@ export function createHistoryRouter(outputDir: string): Router {
       return;
     }
 
-    const fromReport = loadReport(reportsDir, from);
-    const toReport = loadReport(reportsDir, to);
+    const fromReport = await loadReport(reportsDir, from);
+    const toReport = await loadReport(reportsDir, to);
 
     if (!fromReport || !toReport) {
       res.status(404).json({ error: 'One or both reports not found.' });
@@ -86,7 +86,7 @@ export function createHistoryRouter(outputDir: string): Router {
     res.json(computeDiff(fromReport, toReport));
   });
 
-  router.get('/api/reports/:filename', (req, res) => {
+  router.get('/api/reports/:filename', async (req, res) => {
     const { filename } = req.params;
 
     if (!isValidFilename(filename)) {
@@ -94,7 +94,7 @@ export function createHistoryRouter(outputDir: string): Router {
       return;
     }
 
-    const report = loadReport(reportsDir, filename);
+    const report = await loadReport(reportsDir, filename);
     if (!report) {
       res.status(404).json({ error: 'Report not found.' });
       return;
@@ -103,22 +103,29 @@ export function createHistoryRouter(outputDir: string): Router {
     res.json(report);
   });
 
-  router.get('/api/reports', (_req, res) => {
-    if (!fs.existsSync(reportsDir)) {
+  router.get('/api/reports', async (req, res) => {
+    let files: string[];
+    try {
+      const entries = await fsp.readdir(reportsDir);
+      files = entries
+        .filter((f): f is string => typeof f === 'string')
+        .filter((f) => f.endsWith('.json') && f !== 'latest.json')
+        .sort()
+        .reverse();
+    } catch {
       res.status(404).json({ error: 'No reports directory found.' });
       return;
     }
 
-    const files = fs.readdirSync(reportsDir)
-      .filter((f): f is string => typeof f === 'string')
-      .filter((f) => f.endsWith('.json') && f !== 'latest.json')
-      .sort()
-      .reverse();
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(MAX_PAGE_LIMIT, Math.max(1, Number(req.query.limit) || DEFAULT_PAGE_LIMIT));
+    const start = (page - 1) * limit;
+    const pageFiles = files.slice(start, start + limit);
 
     const items: ReportListItem[] = [];
 
-    for (const filename of files) {
-      const report = loadReport(reportsDir, filename);
+    for (const filename of pageFiles) {
+      const report = await loadReport(reportsDir, filename);
       if (!report) continue;
       items.push({
         filename,
@@ -127,7 +134,7 @@ export function createHistoryRouter(outputDir: string): Router {
       });
     }
 
-    res.json(items);
+    res.json({ items, total: files.length, page, limit });
   });
 
   return router;

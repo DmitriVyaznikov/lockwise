@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { LockwiseReport } from '@lockwise/core';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import express from 'express';
 import request from 'supertest';
 import { createApiRouter, createSecureApp, loadLatestReport } from '../../commands/serve.js';
 
 vi.mock('node:fs');
+vi.mock('node:fs/promises');
 
 const mockReport: LockwiseReport = {
   meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 5 },
@@ -19,29 +21,26 @@ describe('loadLatestReport', () => {
     vi.restoreAllMocks();
   });
 
-  it('should load report from latest.json', () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readFileSync.mockReturnValue(JSON.stringify(mockReport));
+  it('should load report from latest.json', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fsp.readFile).mockResolvedValue(JSON.stringify(mockReport));
 
-    const report = loadLatestReport('.lockwise');
+    const report = await loadLatestReport('.lockwise');
     expect(report).toEqual(mockReport);
   });
 
-  it('should return null when latest.json does not exist', () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(false);
+  it('should return null when latest.json does not exist', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(false);
 
-    const report = loadLatestReport('.lockwise');
+    const report = await loadLatestReport('.lockwise');
     expect(report).toBeNull();
   });
 
-  it('should return null on malformed JSON', () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readFileSync.mockReturnValue('not json');
+  it('should return null on malformed JSON', async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fsp.readFile).mockResolvedValue('not json');
 
-    const report = loadLatestReport('.lockwise');
+    const report = await loadLatestReport('.lockwise');
     expect(report).toBeNull();
   });
 });
@@ -58,9 +57,8 @@ describe('GET /api/report', () => {
   }
 
   it('should return 200 with report when available', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readFileSync.mockReturnValue(JSON.stringify(mockReport));
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fsp.readFile).mockResolvedValue(JSON.stringify(mockReport));
 
     const res = await request(createApp('.lockwise')).get('/api/report');
 
@@ -69,8 +67,7 @@ describe('GET /api/report', () => {
   });
 
   it('should return 404 when no report exists', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(false);
+    vi.mocked(fs.existsSync).mockReturnValue(false);
 
     const res = await request(createApp('.lockwise')).get('/api/report');
 
@@ -79,9 +76,8 @@ describe('GET /api/report', () => {
   });
 
   it('should return 404 when report is malformed', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readFileSync.mockReturnValue('{broken');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fsp.readFile).mockResolvedValue('{broken');
 
     const res = await request(createApp('.lockwise')).get('/api/report');
 
@@ -99,8 +95,7 @@ describe('security headers', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(false);
+    vi.mocked(fs.existsSync).mockReturnValue(false);
   });
 
   it('should include helmet security headers', async () => {

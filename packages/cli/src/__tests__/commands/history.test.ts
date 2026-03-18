@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import express from 'express';
 import request from 'supertest';
 import type { LockwiseReport } from '@lockwise/core';
 import { createHistoryRouter, computeDiff } from '../../commands/history.js';
 
-vi.mock('node:fs');
+vi.mock('node:fs/promises');
 
 const makeReport = (overrides: Partial<LockwiseReport> = {}): LockwiseReport => ({
   meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 2 },
@@ -154,54 +154,78 @@ describe('GET /api/reports', () => {
     return app;
   }
 
-  it('should return list of reports sorted by date desc', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readdirSync.mockReturnValue([
-      '2026-03-15T10-00-00-000Z.json' as unknown as fs.Dirent,
-      '2026-03-17T10-00-00-000Z.json' as unknown as fs.Dirent,
-      'latest.json' as unknown as fs.Dirent,
-    ]);
-    mockedFs.readFileSync.mockImplementation((filePath) => {
+  it('should return paginated list of reports sorted by date desc', async () => {
+    vi.mocked(fsp.readdir).mockResolvedValue([
+      '2026-03-15T10-00-00-000Z.json',
+      '2026-03-17T10-00-00-000Z.json',
+      'latest.json',
+    ] as unknown as string[]);
+    vi.mocked(fsp.readFile).mockImplementation((filePath) => {
       const p = String(filePath);
-      if (p.includes('2026-03-15')) return JSON.stringify(reportOld);
-      if (p.includes('2026-03-17')) return JSON.stringify(reportNew);
-      return '';
+      if (p.includes('2026-03-15')) return Promise.resolve(JSON.stringify(reportOld));
+      if (p.includes('2026-03-17')) return Promise.resolve(JSON.stringify(reportNew));
+      return Promise.resolve('');
     });
 
     const res = await request(createApp('.lockwise')).get('/api/reports');
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveLength(2);
-    expect(res.body[0].filename).toBe('2026-03-17T10-00-00-000Z.json');
-    expect(res.body[1].filename).toBe('2026-03-15T10-00-00-000Z.json');
-    expect(res.body[0].meta).toBeDefined();
-    expect(res.body[0].summary).toBeDefined();
+    expect(res.body.items).toHaveLength(2);
+    expect(res.body.items[0].filename).toBe('2026-03-17T10-00-00-000Z.json');
+    expect(res.body.items[1].filename).toBe('2026-03-15T10-00-00-000Z.json');
+    expect(res.body.total).toBe(2);
+    expect(res.body.page).toBe(1);
+    expect(res.body.limit).toBe(100);
   });
 
   it('should exclude latest.json from list', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readdirSync.mockReturnValue([
-      '2026-03-17T10-00-00-000Z.json' as unknown as fs.Dirent,
-      'latest.json' as unknown as fs.Dirent,
-    ]);
-    mockedFs.readFileSync.mockReturnValue(JSON.stringify(reportNew));
+    vi.mocked(fsp.readdir).mockResolvedValue([
+      '2026-03-17T10-00-00-000Z.json',
+      'latest.json',
+    ] as unknown as string[]);
+    vi.mocked(fsp.readFile).mockResolvedValue(JSON.stringify(reportNew));
 
     const res = await request(createApp('.lockwise')).get('/api/reports');
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveLength(1);
-    expect(res.body[0].filename).not.toBe('latest.json');
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].filename).not.toBe('latest.json');
   });
 
   it('should return 404 when reports dir does not exist', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(false);
+    vi.mocked(fsp.readdir).mockRejectedValue(new Error('ENOENT'));
 
     const res = await request(createApp('.lockwise')).get('/api/reports');
 
     expect(res.status).toBe(404);
+  });
+
+  it('should respect page and limit query params', async () => {
+    const filenames = Array.from({ length: 5 }, (_, i) =>
+      `2026-03-${String(10 + i).padStart(2, '0')}T10-00-00-000Z.json`,
+    );
+    vi.mocked(fsp.readdir).mockResolvedValue(filenames as unknown as string[]);
+    vi.mocked(fsp.readFile).mockResolvedValue(JSON.stringify(reportNew));
+
+    const res = await request(createApp('.lockwise')).get('/api/reports?page=2&limit=2');
+
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(2);
+    expect(res.body.total).toBe(5);
+    expect(res.body.page).toBe(2);
+    expect(res.body.limit).toBe(2);
+  });
+
+  it('should cap limit at 500', async () => {
+    vi.mocked(fsp.readdir).mockResolvedValue([
+      '2026-03-17T10-00-00-000Z.json',
+    ] as unknown as string[]);
+    vi.mocked(fsp.readFile).mockResolvedValue(JSON.stringify(reportNew));
+
+    const res = await request(createApp('.lockwise')).get('/api/reports?limit=9999');
+
+    expect(res.status).toBe(200);
+    expect(res.body.limit).toBe(500);
   });
 });
 
@@ -217,9 +241,7 @@ describe('GET /api/reports/:filename', () => {
   }
 
   it('should return a specific report', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readFileSync.mockReturnValue(JSON.stringify(reportNew));
+    vi.mocked(fsp.readFile).mockResolvedValue(JSON.stringify(reportNew));
 
     const res = await request(createApp('.lockwise'))
       .get('/api/reports/2026-03-17T10-00-00-000Z.json');
@@ -229,8 +251,7 @@ describe('GET /api/reports/:filename', () => {
   });
 
   it('should return 404 for non-existent report', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(false);
+    vi.mocked(fsp.readFile).mockRejectedValue(new Error('ENOENT'));
 
     const res = await request(createApp('.lockwise'))
       .get('/api/reports/does-not-exist.json');
@@ -258,13 +279,11 @@ describe('GET /api/reports/diff', () => {
   }
 
   it('should return diff between two reports', async () => {
-    const mockedFs = vi.mocked(fs);
-    mockedFs.existsSync.mockReturnValue(true);
-    mockedFs.readFileSync.mockImplementation((filePath) => {
+    vi.mocked(fsp.readFile).mockImplementation((filePath) => {
       const p = String(filePath);
-      if (p.includes('old.json')) return JSON.stringify(reportOld);
-      if (p.includes('new.json')) return JSON.stringify(reportNew);
-      return '';
+      if (p.includes('old.json')) return Promise.resolve(JSON.stringify(reportOld));
+      if (p.includes('new.json')) return Promise.resolve(JSON.stringify(reportNew));
+      return Promise.resolve('');
     });
 
     const res = await request(createApp('.lockwise'))

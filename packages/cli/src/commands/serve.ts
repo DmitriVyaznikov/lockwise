@@ -1,16 +1,17 @@
-import fs from 'node:fs';
+import { existsSync } from 'node:fs';
+import fsp from 'node:fs/promises';
 import path from 'node:path';
 import express, { Router } from 'express';
 import helmet from 'helmet';
 import type { LockwiseReport } from '@lockwise/core';
 import { createHistoryRouter } from './history.js';
 
-export function loadLatestReport(outputDir: string): LockwiseReport | null {
+export async function loadLatestReport(outputDir: string): Promise<LockwiseReport | null> {
   const latestPath = path.join(outputDir, 'reports', 'latest.json');
-  if (!fs.existsSync(latestPath)) return null;
+  if (!existsSync(latestPath)) return null;
 
   try {
-    const content = fs.readFileSync(latestPath, 'utf-8');
+    const content = await fsp.readFile(latestPath, 'utf-8');
     return JSON.parse(content) as LockwiseReport;
   } catch (error) {
     console.error('[serve] Failed to load report:', error);
@@ -21,8 +22,8 @@ export function loadLatestReport(outputDir: string): LockwiseReport | null {
 export function createApiRouter(outputDir: string): Router {
   const router = Router();
 
-  router.get('/api/report', (_req, res) => {
-    const report = loadLatestReport(outputDir);
+  router.get('/api/report', async (_req, res) => {
+    const report = await loadLatestReport(outputDir);
     if (!report) {
       res.status(404).json({ error: 'No report found. Run "lockwise analyze" first.' });
       return;
@@ -71,7 +72,7 @@ export function startServer(
   app.use(createApiRouter(outputDir));
   app.use(createHistoryRouter(outputDir));
 
-  if (uiDistPath && fs.existsSync(uiDistPath)) {
+  if (uiDistPath && existsSync(uiDistPath)) {
     app.use(express.static(uiDistPath));
     app.get('/{*splat}', (_req, res) => {
       res.sendFile(path.join(uiDistPath, 'index.html'));
