@@ -3,6 +3,8 @@ import type { LockfileParser } from './types.js';
 // @ts-expect-error -- @yarnpkg/lockfile has no type declarations
 import * as lockfile from '@yarnpkg/lockfile';
 
+const MAX_LOCKFILE_SIZE = 50 * 1024 * 1024;
+
 interface YarnLockEntry {
   readonly version: string;
   readonly resolved?: string;
@@ -36,6 +38,9 @@ export const yarnParser: LockfileParser = {
   },
 
   parse(content: string): ParsedLockfile {
+    if (content.length > MAX_LOCKFILE_SIZE) {
+      throw new Error(`Lockfile size (${content.length} bytes) exceeds maximum allowed size (${MAX_LOCKFILE_SIZE} bytes).`);
+    }
     const parsed = lockfile.parse(content) as { type: string; object: Record<string, YarnLockEntry> };
     const entries = parsed.object;
     const rawPackages: Record<string, RawPackageData> = {};

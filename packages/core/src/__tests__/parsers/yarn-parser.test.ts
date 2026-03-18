@@ -54,5 +54,10 @@ describe('yarnParser', () => {
       expect(result.packages[0].name).toBe('@types/node');
       expect(result.packages[0].version).toBe('22.5.0');
     });
+
+    it('should reject oversized content', () => {
+      const oversized = '# yarn lockfile v1\n' + 'a'.repeat(50 * 1024 * 1024 + 1);
+      expect(() => parser.parse(oversized)).toThrow(/exceeds maximum/);
+    });
   });
 });

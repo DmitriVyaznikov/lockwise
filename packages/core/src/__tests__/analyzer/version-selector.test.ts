@@ -60,4 +60,13 @@ describe('selectBestVersion', () => {
   it('should return null when registry data is missing', () => {
     expect(selectBestVersion('test-pkg', '^1.0.0', null, makeVulnMap({}), 30)).toBeNull();
   });
+
+  it('should encode scoped package names in PURL for vulnerability lookup', () => {
+    const registry = makeRegistryData({ '1.0.0': OLD_DATE });
+    const vulnMap = makeVulnMap({
+      'pkg:npm/%40scope/pkg@1.0.0': { vulnerabilities: [{ id: 'CVE-1', summary: 'bad', cvssScore: 9.0 }] },
+    });
+    const result = selectBestVersion('@scope/pkg', '^1.0.0', registry, vulnMap, 30);
+    expect(result!.category).toBe('maybeVulnerable');
+  });
 });

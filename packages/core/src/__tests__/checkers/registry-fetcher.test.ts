@@ -28,4 +28,14 @@ describe('RegistryFetcher', () => {
     mockedAxios.get.mockRejectedValueOnce(new Error('Not found'));
     expect(await fetcher.fetch('nonexistent')).toBeNull();
   });
+
+  it('should return null for invalid response shape', async () => {
+    mockedAxios.get.mockResolvedValueOnce({ data: { unexpected: true } });
+    expect(await fetcher.fetch('bad-shape')).toBeNull();
+  });
+
+  it('should return null when versions is missing', async () => {
+    mockedAxios.get.mockResolvedValueOnce({ data: { name: 'pkg', time: {} } });
+    expect(await fetcher.fetch('no-versions')).toBeNull();
+  });
 });

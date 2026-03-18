@@ -1,10 +1,14 @@
 import axios from 'axios';
+import pLimit from 'p-limit';
 import type { VulnInfo } from '../types.js';
 import { logger } from '../logger.js';
 
 const OSV_BATCH_URL = 'https://api.osv.dev/v1/querybatch';
 const BATCH_SIZE = 1000;
 const REQUEST_TIMEOUT_MS = 30_000;
+const MAX_RESPONSE_SIZE = 50 * 1024 * 1024;
+const MAX_REQUEST_SIZE = 10 * 1024 * 1024;
+const OSV_BATCH_CONCURRENCY = 5;
 
 const SEVERITY_SCORE_MAP: Record<string, number> = {
   CRITICAL: 9.5,
@@ -56,7 +60,8 @@ export async function checkVulnerabilities(purls: string[]): Promise<Map<string,
     batches.push(purls.slice(i, i + BATCH_SIZE));
   }
 
-  const settled = await Promise.allSettled(batches.map((batch) => fetchOsvBatch(batch)));
+  const limit = pLimit(OSV_BATCH_CONCURRENCY);
+  const settled = await Promise.allSettled(batches.map((batch) => limit(() => fetchOsvBatch(batch))));
 
   for (const entry of settled) {
     if (entry.status === 'fulfilled') {
@@ -75,6 +80,8 @@ async function fetchOsvBatch(batch: string[]): Promise<Map<string, VulnMapEntry>
     const queries = batch.map((purl) => ({ package: { purl } }));
     const response = await axios.post<OsvBatchResponse>(OSV_BATCH_URL, { queries }, {
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      maxContentLength: MAX_RESPONSE_SIZE,
+      maxBodyLength: MAX_REQUEST_SIZE,
     });
 
     for (let j = 0; j < batch.length; j++) {

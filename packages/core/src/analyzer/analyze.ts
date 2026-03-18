@@ -16,6 +16,7 @@ import type { RegistryData } from '../checkers/registry-fetcher.js';
 import { createRegistryFetcher } from '../checkers/registry-fetcher.js';
 import { buildRangeMap, resolveRange } from './range-resolver.js';
 import { selectBestVersion } from './version-selector.js';
+import { buildPurl } from './purl.js';
 
 const CONCURRENCY_LIMIT = 15;
 
@@ -49,7 +50,7 @@ export async function analyze(
   const nexusStatusMap = buildNexusStatusMap(nexusResults);
   const unavailablePackages = nexusResults.filter((r) => r.status !== 200);
 
-  const purls = packages.map((pkg) => `pkg:npm/${pkg.name}@${pkg.version}`);
+  const purls = packages.map((pkg) => buildPurl(pkg.name, pkg.version));
   onProgress?.('vulnerabilities', 0, purls.length);
   const vulnMap = await checkVulnerabilities(purls);
   onProgress?.('vulnerabilities', purls.length, purls.length);
@@ -149,7 +150,7 @@ function buildPackageResults(
 
     const selection = selectBestVersion(pkg.name, range, registryData, vulnMap, minAgeDays);
 
-    const purl = `pkg:npm/${pkg.name}@${pkg.version}`;
+    const purl = buildPurl(pkg.name, pkg.version);
     const vulnEntry = vulnMap.get(purl);
     const vulnerabilities: VulnInfo[] = vulnEntry?.vulnerabilities ?? [];
 

@@ -31,6 +31,13 @@ function formatDate(isoDate: string): string {
   });
 }
 
+const SAFE_VULN_ID_RE = /^[A-Za-z0-9_\-.]+$/;
+
+function osvUrl(id: string): string | null {
+  if (!SAFE_VULN_ID_RE.test(id)) return null;
+  return `https://osv.dev/vulnerability/${id}`;
+}
+
 function goBack() {
   router.push('/');
 }
@@ -131,13 +138,15 @@ function goBack() {
               <tr v-for="vuln in pkg.vulnerabilities" :key="vuln.id">
                 <td>
                   <a
-                    :href="`https://osv.dev/vulnerability/${vuln.id}`"
+                    v-if="osvUrl(vuln.id)"
+                    :href="osvUrl(vuln.id)!"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="vuln-link"
                   >
                     {{ vuln.id }}
                   </a>
+                  <span v-else>{{ vuln.id }}</span>
                 </td>
                 <td>{{ vuln.summary }}</td>
                 <td>

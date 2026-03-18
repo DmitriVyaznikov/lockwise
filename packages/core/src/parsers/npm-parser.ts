@@ -1,6 +1,8 @@
 import type { ParsedLockfile, PackageEntry, RawPackageData } from '../types.js';
 import type { LockfileParser } from './types.js';
 
+const MAX_LOCKFILE_SIZE = 50 * 1024 * 1024;
+
 interface NpmLockfileJson {
   readonly lockfileVersion?: number;
   readonly packages?: Record<string, NpmRawEntry>;
@@ -27,15 +29,13 @@ function extractPackageName(key: string): string | null {
 
 export const npmParser: LockfileParser = {
   canParse(content: string): boolean {
-    try {
-      const data = JSON.parse(content) as NpmLockfileJson;
-      return typeof data.lockfileVersion === 'number' && data.lockfileVersion >= 2;
-    } catch {
-      return false;
-    }
+    return content.trimStart().startsWith('{') && content.includes('"lockfileVersion"');
   },
 
   parse(content: string): ParsedLockfile {
+    if (content.length > MAX_LOCKFILE_SIZE) {
+      throw new Error(`Lockfile size (${content.length} bytes) exceeds maximum allowed size (${MAX_LOCKFILE_SIZE} bytes).`);
+    }
     const data = JSON.parse(content) as NpmLockfileJson;
     const rawEntries = data.packages ?? {};
     const rawPackages: Record<string, RawPackageData> = {};

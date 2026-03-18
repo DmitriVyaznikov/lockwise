@@ -79,5 +79,10 @@ describe('npmParser', () => {
       expect(result.rawPackages['']).toBeDefined();
       expect(result.rawPackages['node_modules/axios']).toBeDefined();
     });
+
+    it('should reject oversized content', () => {
+      const oversized = '{"lockfileVersion":3,' + '"packages":{' + '"a":'.repeat(50 * 1024 * 1024 / 4) + '}}';
+      expect(() => parser.parse(oversized)).toThrow(/exceeds maximum/);
+    });
   });
 });

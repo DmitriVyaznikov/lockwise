@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import express from 'express';
 import request from 'supertest';
-import { createApiRouter, createSecureApp, loadLatestReport } from '../../commands/serve.js';
+import { createApiRouter, createRateLimiter, createSecureApp, loadLatestReport } from '../../commands/serve.js';
 
 vi.mock('node:fs');
 vi.mock('node:fs/promises');
@@ -105,12 +105,28 @@ describe('security headers', () => {
     expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
   });
 
-  it('should include CORS headers for localhost', async () => {
+  it('should include CORS headers for 127.0.0.1 origin', async () => {
     const res = await request(createSecuredApp())
       .get('/api/report')
       .set('Origin', 'http://127.0.0.1:3000');
 
     expect(res.headers['access-control-allow-origin']).toBe('http://127.0.0.1:3000');
+  });
+
+  it('should include CORS headers for localhost origin', async () => {
+    const res = await request(createSecuredApp())
+      .get('/api/report')
+      .set('Origin', 'http://localhost:3000');
+
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+  });
+
+  it('should not include CORS headers for disallowed origins', async () => {
+    const res = await request(createSecuredApp())
+      .get('/api/report')
+      .set('Origin', 'http://evil.com');
+
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
 
   it('should return 204 for preflight OPTIONS request', async () => {
@@ -121,5 +137,20 @@ describe('security headers', () => {
 
     expect(res.status).toBe(204);
     expect(res.headers['access-control-allow-methods']).toBe('GET, OPTIONS');
+  });
+
+  it('should return 429 when rate limit is exceeded', async () => {
+    const app = express();
+    app.use(createRateLimiter(3));
+    app.use(createApiRouter('.lockwise'));
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+
+    const agent = request(app);
+    for (let i = 0; i < 3; i++) {
+      await agent.get('/api/report');
+    }
+    const res = await agent.get('/api/report');
+    expect(res.status).toBe(429);
+    expect(res.body.error).toMatch(/Too many requests/);
   });
 });

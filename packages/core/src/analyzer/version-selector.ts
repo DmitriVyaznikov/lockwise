@@ -2,6 +2,7 @@ import semver from 'semver';
 import type { VersionSelection } from '../types.js';
 import type { VulnMapEntry } from '../checkers/osv-checker.js';
 import type { RegistryData } from '../checkers/registry-fetcher.js';
+import { buildPurl } from './purl.js';
 
 interface VersionCandidate {
   readonly version: string;
@@ -30,7 +31,7 @@ export function selectBestVersion(
         version: v,
         publishedAt,
         isOld: now - publishedAt.getTime() > minAgeMs,
-        purl: `pkg:npm/${packageName}@${v}`,
+        purl: buildPurl(packageName, v),
       };
     })
     .sort((a, b) => semver.compare(a.version, b.version));
