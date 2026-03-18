@@ -2,6 +2,16 @@
 
 CLI for syncing npm dependencies between a public registry and a private Nexus registry.
 
+## How It Works (main concept)
+
+1. Switch to the public npm registry and run `npm install` (optimistic install)
+2. Run `lockwise analyze` against the generated lockfile
+3. Lockwise checks each package's availability on Nexus, scans for vulnerabilities via [OSV.dev](https://osv.dev/), and recommends safe versions
+4. Upload the recommended packages to Nexus
+5. Switch back to Nexus and install normally
+
+### Steps: 
+
 ## Install
 
 ```bash
