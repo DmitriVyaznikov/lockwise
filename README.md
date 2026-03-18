@@ -1,6 +1,13 @@
 # Lockwise
 
+[![npm @lockwise/core](https://img.shields.io/npm/v/@lockwise/core?label=%40lockwise%2Fcore)](https://www.npmjs.com/package/@lockwise/core)
+[![npm @lockwise/cli](https://img.shields.io/npm/v/@lockwise/cli?label=%40lockwise%2Fcli)](https://www.npmjs.com/package/@lockwise/cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/DmitriVyaznikov/lockwise/blob/main/LICENSE)
+
 CLI tool and web dashboard for syncing npm dependencies between a public registry and a private Nexus registry.
+
+**GitHub:** https://github.com/DmitriVyaznikov/lockwise
+**npm:** https://www.npmjs.com/package/@lockwise
 
 ## Problem
 
@@ -17,31 +24,62 @@ When using Nexus as a private npm registry, `npm install` fails if any package i
 ## Quick Start
 
 ```bash
-npm install
-npm run build
-
-# Set your Nexus URL (or create a .env file — see .env.example)
-export LOCKWISE_NEXUS_URL=http://your-nexus.example.com/repository/npm-group
+# Install globally
+npm install -g @lockwise/cli
 
 # Analyze your project's lockfile
-npx lockwise analyze
+lockwise analyze --nexus-url http://your-nexus.example.com/repository/npm-group
 
 # Open the web dashboard
-npx lockwise ui
+lockwise ui
 ```
+
+Or use a config file (see [Configuration](#configuration)).
 
 ## Configuration
 
-Lockwise reads configuration from CLI flags, environment variables, and defaults (in that priority order).
+Lockwise uses [cosmiconfig](https://github.com/cosmiconfig/cosmiconfig) for configuration. It searches for config in the following locations:
 
-| Setting | CLI flag | Env var | Default |
+- `lockwise.config.ts` / `lockwise.config.js` / `lockwise.config.cjs` / `lockwise.config.mjs`
+- `.lockwiserc` / `.lockwiserc.json` / `.lockwiserc.yaml` / `.lockwiserc.yml`
+- `.lockwiserc.js` / `.lockwiserc.cjs` / `.lockwiserc.mjs`
+- `package.json` — `"lockwise"` field
+
+CLI flags and environment variables override config file values.
+
+### Example: lockwise.config.ts
+
+```typescript
+export default {
+  nexusUrl: 'https://nexus.mycompany.com/repository/npm-proxy',
+  minAgeDays: 14,
+  servePort: 8080,
+};
+```
+
+### Example: .lockwiserc.json
+
+```json
+{
+  "nexusUrl": "https://nexus.mycompany.com/repository/npm-proxy",
+  "minAgeDays": 14,
+  "outputDir": "reports"
+}
+```
+
+### Options
+
+| Option | Type | Default | Description |
 |---|---|---|---|
-| Nexus URL | `--nexus-url` | `LOCKWISE_NEXUS_URL` | *required* |
-| Public registry | — | `LOCKWISE_PUBLIC_REGISTRY` | `https://registry.npmjs.org` |
-| Min age (days) | — | `LOCKWISE_MIN_AGE_DAYS` | `30` |
-| Output directory | — | `LOCKWISE_OUTPUT_DIR` | `.lockwise` |
+| `nexusUrl` | `string` | `http://nexus.action-media.ru/repository/npm-group` | Nexus registry URL |
+| `publicRegistry` | `string` | `https://registry.npmjs.org` | Public npm registry URL |
+| `minAgeDays` | `number` | `30` | Minimum package age in days |
+| `lockfile` | `string` | auto-detect | Path to lockfile |
+| `outputDir` | `string` | `.lockwise` | Output directory for reports |
+| `servePort` | `number` | `3001` | Default port for `lockwise serve` |
+| `uiPort` | `number` | `3000` | Default port for `lockwise ui` |
 
-Create a `.env` file in your project root (see `.env.example`). Lockwise loads it automatically via Node.js built-in `process.loadEnvFile()`.
+Environment variables (`LOCKWISE_NEXUS_URL`, `LOCKWISE_PUBLIC_REGISTRY`, `LOCKWISE_MIN_AGE_DAYS`, `LOCKWISE_OUTPUT_DIR`) are also supported. Create a `.env` file — Lockwise loads it automatically.
 
 ## CLI Commands
 
@@ -93,6 +131,14 @@ Options:
   -p, --port <number>   Server port (default: 3001)
 ```
 
+### `lockwise config`
+
+Prints the resolved configuration as JSON. Useful for debugging config file loading.
+
+```bash
+lockwise config
+```
+
 ## Features
 
 - **Lockfile parsing** — supports `package-lock.json` (npm v2/v3), `yarn.lock` (classic), `pnpm-lock.yaml`
@@ -115,15 +161,15 @@ Options:
 ## Programmatic Usage
 
 ```typescript
-import { detectAndParse, analyze, CONFIG_DEFAULTS } from '@lockwise/core';
+import { detectAndParse, analyze, DEFAULT_CONFIG } from '@lockwise/core';
 import fs from 'fs';
 
 const lockfileContent = fs.readFileSync('package-lock.json', 'utf-8');
 const parsed = detectAndParse(lockfileContent);
 
 const report = await analyze(parsed, {
-  ...CONFIG_DEFAULTS,
-  nexusUrl: process.env.LOCKWISE_NEXUS_URL!,
+  ...DEFAULT_CONFIG,
+  nexusUrl: 'http://your-nexus/repository/npm-group',
 });
 
 console.log(`Total: ${report.meta.totalPackages}`);
@@ -145,25 +191,28 @@ The `serve` and `ui` commands expose:
 
 ```
 packages/
-  core/   — lockfile parsing, Nexus/OSV checks, version analysis, shared types
-  cli/    — CLI commands (analyze, serve, ui), formatters, exit codes
+  core/   — lockfile parsing, Nexus/OSV checks, version analysis, config loader
+  cli/    — CLI commands (analyze, serve, ui, config), formatters, exit codes
   ui/     — Vue 3 + Vite web dashboard
 ```
 
 ## Development
 
 ```bash
-npm install              # Install dependencies (npm workspaces)
-npm run build            # Build core + cli
-npm run dev              # UI dev server (Vite)
-npm run test             # Run all tests (Vitest)
-npm run test:core        # Core tests only
-npm run test:cli         # CLI tests only
-npm run test:ui          # UI tests only
-npm run lint             # ESLint + auto-fix
-npm run type-check       # TypeScript check
-npm run final            # tests + lint + type-check
-npm run coverage         # Coverage report
+git clone https://github.com/DmitriVyaznikov/lockwise.git
+cd lockwise
+npm install
+
+npm run build:all         # Build core -> cli -> ui
+npm run dev               # UI dev server (Vite)
+npm run test              # Run all tests (Vitest)
+npm run test:core         # Core tests only
+npm run test:cli          # CLI tests only
+npm run test:ui           # UI tests only
+npm run lint              # ESLint + auto-fix
+npm run type-check        # TypeScript check
+npm run final             # tests + lint + type-check
+npm run coverage          # Coverage report
 ```
 
 ### Local usage without publishing
@@ -171,7 +220,7 @@ npm run coverage         # Coverage report
 The project uses npm workspaces, so packages resolve each other locally. After building, you can run the CLI directly from the monorepo root:
 
 ```bash
-npm run build
+npm run build:all
 npx lockwise analyze
 ```
 
@@ -187,7 +236,7 @@ npm link @lockwise/cli
 lockwise analyze --nexus-url http://your-nexus/repository/npm-group
 ```
 
-Changes to TypeScript source require a rebuild (`npm run build`) to take effect.
+Changes to TypeScript source require a rebuild (`npm run build:all`) to take effect.
 
 ## Tech Stack
 
