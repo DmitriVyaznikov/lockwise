@@ -3,7 +3,7 @@ import type { LockwiseReport } from '@lockwise/core';
 import fs from 'node:fs';
 import express from 'express';
 import request from 'supertest';
-import { createApiRouter, loadLatestReport } from '../../commands/serve.js';
+import { createApiRouter, createSecureApp, loadLatestReport } from '../../commands/serve.js';
 
 vi.mock('node:fs');
 
@@ -87,5 +87,44 @@ describe('GET /api/report', () => {
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/No report found/);
+  });
+});
+
+describe('security headers', () => {
+  function createSecuredApp() {
+    const app = createSecureApp(3000);
+    app.use(createApiRouter('.lockwise'));
+    return app;
+  }
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    const mockedFs = vi.mocked(fs);
+    mockedFs.existsSync.mockReturnValue(false);
+  });
+
+  it('should include helmet security headers', async () => {
+    const res = await request(createSecuredApp()).get('/api/report');
+
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+  });
+
+  it('should include CORS headers for localhost', async () => {
+    const res = await request(createSecuredApp())
+      .get('/api/report')
+      .set('Origin', 'http://127.0.0.1:3000');
+
+    expect(res.headers['access-control-allow-origin']).toBe('http://127.0.0.1:3000');
+  });
+
+  it('should return 204 for preflight OPTIONS request', async () => {
+    const res = await request(createSecuredApp())
+      .options('/api/report')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('Access-Control-Request-Method', 'GET');
+
+    expect(res.status).toBe(204);
+    expect(res.headers['access-control-allow-methods']).toBe('GET, OPTIONS');
   });
 });

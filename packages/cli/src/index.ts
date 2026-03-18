@@ -48,7 +48,7 @@ program
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const uiDist = path.resolve(__dirname, '../../ui/dist');
     startServer(process.env.LOCKWISE_OUTPUT_DIR ?? CONFIG_DEFAULTS.outputDir, port, uiDist);
-    console.log(`Dashboard: http://localhost:${port}`);
+    console.log(`Dashboard: http://127.0.0.1:${port}`);
   });
 
 program.parse();

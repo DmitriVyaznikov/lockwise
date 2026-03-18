@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import express, { Router } from 'express';
+import helmet from 'helmet';
 import type { LockwiseReport } from '@lockwise/core';
 import { createHistoryRouter } from './history.js';
 
@@ -32,12 +33,39 @@ export function createApiRouter(outputDir: string): Router {
   return router;
 }
 
+export function createSecureApp(port: number): express.Express {
+  const app = express();
+
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  }));
+
+  const allowedOrigin = `http://127.0.0.1:${port}`;
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    if (req.method === 'OPTIONS') {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
+
+  return app;
+}
+
 export function startServer(
   outputDir: string,
   port: number,
   uiDistPath?: string,
+  host = '127.0.0.1',
 ): { close: () => void } {
-  const app = express();
+  const app = createSecureApp(port);
 
   // API routers must be registered before the SPA catch-all
   app.use(createApiRouter(outputDir));
@@ -50,8 +78,8 @@ export function startServer(
     });
   }
 
-  const server = app.listen(port, () => {
-    console.log(`Lockwise server running at http://localhost:${port}`);
+  const server = app.listen(port, host, () => {
+    console.log(`Lockwise server running at http://${host}:${port}`);
   });
 
   return { close: () => server.close() };
