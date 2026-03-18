@@ -1,5 +1,6 @@
 import { CONFIG_DEFAULTS } from '@lockwise/core';
 import type { LockwiseConfig } from '@lockwise/core';
+import { isValidHttpUrl } from './validation.js';
 
 export interface ResolveConfigOptions {
   readonly nexusUrl?: string;
@@ -14,12 +15,20 @@ export function resolveConfig(cliOptions: ResolveConfigOptions): LockwiseConfig 
     );
   }
 
+  if (!isValidHttpUrl(nexusUrl)) {
+    throw new Error(`Invalid Nexus URL "${nexusUrl}". Must be a valid HTTP or HTTPS URL.`);
+  }
+
   const publicRegistry =
     process.env.LOCKWISE_PUBLIC_REGISTRY ?? CONFIG_DEFAULTS.publicRegistry;
 
+  if (!isValidHttpUrl(publicRegistry)) {
+    throw new Error(`Invalid public registry URL "${publicRegistry}". Must be a valid HTTP or HTTPS URL.`);
+  }
+
   const minAgeDaysRaw = process.env.LOCKWISE_MIN_AGE_DAYS;
   const minAgeDaysParsed = minAgeDaysRaw ? Number(minAgeDaysRaw) : NaN;
-  const minAgeDays = Number.isFinite(minAgeDaysParsed)
+  const minAgeDays = Number.isFinite(minAgeDaysParsed) && minAgeDaysParsed >= 0
     ? minAgeDaysParsed
     : CONFIG_DEFAULTS.minAgeDays;
 

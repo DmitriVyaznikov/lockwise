@@ -78,4 +78,24 @@ describe('resolveConfig', () => {
       outputDir: '.lockwise',
     });
   });
+
+  it('should throw when nexusUrl is not a valid HTTP URL', () => {
+    expect(() => resolveConfig({ nexusUrl: 'ftp://nexus/npm' })).toThrow();
+  });
+
+  it('should throw when nexusUrl is garbage', () => {
+    expect(() => resolveConfig({ nexusUrl: 'not-a-url' })).toThrow();
+  });
+
+  it('should throw when publicRegistry is not a valid HTTP URL', () => {
+    vi.stubEnv('LOCKWISE_PUBLIC_REGISTRY', 'ftp://bad-registry');
+    expect(() => resolveConfig({ nexusUrl: 'http://nexus/npm' })).toThrow();
+  });
+
+  it('should fall back to default for negative minAgeDays', () => {
+    vi.stubEnv('LOCKWISE_NEXUS_URL', 'http://nexus/npm');
+    vi.stubEnv('LOCKWISE_MIN_AGE_DAYS', '-5');
+    const config = resolveConfig({});
+    expect(config.minAgeDays).toBe(30);
+  });
 });
