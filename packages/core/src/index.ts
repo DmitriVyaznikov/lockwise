@@ -3,7 +3,8 @@ export type {
   RangeEntry, VersionSelection, VersionInfo, ConsumerInfo, PackageResult, LockwiseReport, LockwiseConfig,
   DiffChangedItem, DiffResult, ReportListItem,
 } from './types.js';
-export { CONFIG_DEFAULTS } from './types.js';
+export { DEFAULT_CONFIG } from './types.js';
+export { loadConfig } from './config-loader.js';
 export { analyze } from './analyzer/index.js';
 export { detectAndParse } from './parsers/index.js';
 export type { RegistryData } from './checkers/registry-fetcher.js';

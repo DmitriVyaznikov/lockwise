@@ -98,6 +98,8 @@ export interface LockwiseConfig {
   readonly minAgeDays: number;
   readonly lockfile?: string;
   readonly outputDir: string;
+  readonly servePort: number;
+  readonly uiPort: number;
 }
 
 /** Changed item in a diff between two reports */
@@ -123,8 +125,11 @@ export interface ReportListItem {
   readonly summary: LockwiseReport['summary'];
 }
 
-export const CONFIG_DEFAULTS = {
+export const DEFAULT_CONFIG = {
+  nexusUrl: 'http://nexus.action-media.ru/repository/npm-group',
   publicRegistry: 'https://registry.npmjs.org',
   minAgeDays: 30,
   outputDir: '.lockwise',
-} as const satisfies Omit<LockwiseConfig, 'nexusUrl'>;
+  servePort: 3001,
+  uiPort: 3000,
+} as const satisfies LockwiseConfig;

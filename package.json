@@ -17,9 +17,14 @@
     "final": "npm run type-check && npm run lint && npm run test",
     "build": "npm run build --workspaces",
     "build:core": "npm run build -w packages/core",
-    "build:cli": "npm run build -w packages/cli"
+    "build:cli": "npm run build -w packages/cli",
+    "build:all": "npm run build -w packages/core && npm run build -w packages/cli && npm run build -w packages/ui",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "npm run build:all && changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.30.0",
     "@eslint/js": "^9.0.0",
     "@vitest/coverage-v8": "^3.0.0",
     "eslint": "^9.0.0",

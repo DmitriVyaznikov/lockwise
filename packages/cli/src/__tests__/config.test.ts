@@ -76,6 +76,8 @@ describe('resolveConfig', () => {
       publicRegistry: 'https://registry.npmjs.org',
       minAgeDays: 30,
       outputDir: '.lockwise',
+      servePort: 3001,
+      uiPort: 3000,
     });
   });
 
@@ -97,5 +99,25 @@ describe('resolveConfig', () => {
     vi.stubEnv('LOCKWISE_MIN_AGE_DAYS', '-5');
     const config = resolveConfig({});
     expect(config.minAgeDays).toBe(30);
+  });
+
+  it('should strip credentials from URL in error messages', () => {
+    expect(() => resolveConfig({ nexusUrl: 'ftp://user:secret@nexus.internal/npm' })).toThrow(
+      /Invalid Nexus URL/,
+    );
+    try {
+      resolveConfig({ nexusUrl: 'ftp://user:secret@nexus.internal/npm' });
+    } catch (error) {
+      expect((error as Error).message).not.toContain('secret');
+    }
+  });
+
+  it('should strip credentials from public registry URL in error messages', () => {
+    vi.stubEnv('LOCKWISE_PUBLIC_REGISTRY', 'ftp://admin:pass123@registry.internal');
+    try {
+      resolveConfig({ nexusUrl: 'http://nexus/npm' });
+    } catch (error) {
+      expect((error as Error).message).not.toContain('pass123');
+    }
   });
 });

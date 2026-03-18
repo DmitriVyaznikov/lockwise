@@ -1,7 +1,24 @@
 {
   "name": "@lockwise/core",
   "version": "0.1.0",
+  "description": "Core analysis engine for syncing npm dependencies between public registry and private Nexus",
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicepkg/lockwise.git",
+    "directory": "packages/core"
+  },
+  "keywords": [
+    "npm",
+    "nexus",
+    "lockfile",
+    "dependencies",
+    "sync",
+    "registry",
+    "vulnerability",
+    "security"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -10,6 +27,14 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch"
@@ -17,6 +42,7 @@
   "dependencies": {
     "@yarnpkg/lockfile": "^1.1.0",
     "axios": "^1.7.0",
+    "cosmiconfig": "^9.0.1",
     "p-limit": "^7.3.0",
     "semver": "^7.6.0",
     "yaml": "^2.4.0"
