@@ -2,6 +2,8 @@ import type { ParsedLockfile, PackageEntry, RawPackageData } from '../types.js';
 import type { LockfileParser } from './types.js';
 import YAML from 'yaml';
 
+const MAX_LOCKFILE_SIZE = 50 * 1024 * 1024;
+
 interface PnpmLockfile {
   readonly lockfileVersion: string;
   readonly packages?: Record<string, PnpmPackageEntry>;
@@ -35,7 +37,10 @@ export const pnpmParser: LockfileParser = {
   },
 
   parse(content: string): ParsedLockfile {
-    const data = YAML.parse(content) as PnpmLockfile;
+    if (content.length > MAX_LOCKFILE_SIZE) {
+      throw new Error(`Lockfile size (${content.length} bytes) exceeds maximum allowed size (${MAX_LOCKFILE_SIZE} bytes).`);
+    }
+    const data = YAML.parse(content, { maxAliasCount: 100 }) as PnpmLockfile;
     const rawPackages: Record<string, RawPackageData> = {};
     const packages: PackageEntry[] = [];
 

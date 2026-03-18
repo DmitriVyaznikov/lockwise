@@ -64,5 +64,19 @@ describe('pnpmParser', () => {
       expect(typesNode).toBeDefined();
       expect(typesNode!.version).toBe('22.5.0');
     });
+
+    it('should reject oversized content', () => {
+      const oversized = 'a'.repeat(50 * 1024 * 1024 + 1);
+      expect(() => parser.parse(oversized)).toThrow(/exceeds maximum/);
+    });
+
+    it('should not hang on YAML with excessive aliases', () => {
+      const lines = ['lockfileVersion: "9.0"', 'packages:'];
+      for (let i = 0; i < 150; i++) {
+        lines.push(`  a${i}: &a${i}`);
+        if (i > 0) lines.push(`    ref: *a${i - 1}`);
+      }
+      expect(() => parser.parse(lines.join('\n'))).toThrow();
+    });
   });
 });
