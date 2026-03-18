@@ -1,6 +1,6 @@
 {
   "name": "@lockwise/cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "CLI for syncing npm dependencies between public registry and private Nexus",
   "type": "module",
   "license": "MIT",
