@@ -17,6 +17,10 @@ describe('buildNexusTarballUrl', () => {
   it('should build URL for scoped package', () => {
     expect(buildNexusTarballUrl('@types/node', '22.5.0', NEXUS_URL)).toBe(`${NEXUS_URL}/@types/node/-/node-22.5.0.tgz`);
   });
+  it('should encode special characters in package name', () => {
+    const url = buildNexusTarballUrl('my package', '1.0.0', NEXUS_URL);
+    expect(url).toBe(`${NEXUS_URL}/my%20package/-/my%20package-1.0.0.tgz`);
+  });
 });
 
 describe('checkNexusAvailability', () => {

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { logger } from '../logger.js';
+import { encodePackageName } from './encode-package-name.js';
 
 const REQUEST_TIMEOUT_MS = 15_000;
 
@@ -23,7 +24,7 @@ export function createRegistryFetcher(registryUrl: string): RegistryFetcher {
       if (inFlight.has(packageName)) return inFlight.get(packageName)!;
 
       const promise = axios
-        .get<RegistryData>(`${registryUrl}/${packageName}`, {
+        .get<RegistryData>(`${registryUrl}/${encodePackageName(packageName)}`, {
           signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         })
         .then(({ data }) => {
