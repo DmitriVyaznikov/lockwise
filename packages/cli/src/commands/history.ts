@@ -6,37 +6,35 @@ import type { LockwiseReport, PackageResult, DiffResult, ReportListItem } from '
 const MAX_PAGE_LIMIT = 500;
 const DEFAULT_PAGE_LIMIT = 100;
 
+type DiffKind = 'added' | 'removed' | 'changed' | 'unchanged';
+
+function classifyPackage(
+  name: string,
+  fromMap: Map<string, PackageResult>,
+  toMap: Map<string, PackageResult>,
+): DiffKind {
+  const fromPkg = fromMap.get(name);
+  const toPkg = toMap.get(name);
+  if (!fromPkg) return 'added';
+  if (!toPkg) return 'removed';
+  if (fromPkg.category !== toPkg.category || fromPkg.currentVersion !== toPkg.currentVersion) return 'changed';
+  return 'unchanged';
+}
+
 export function computeDiff(from: LockwiseReport, to: LockwiseReport): DiffResult {
   const fromMap = new Map(from.packages.map((p) => [p.name, p]));
   const toMap = new Map(to.packages.map((p) => [p.name, p]));
 
-  const added: PackageResult[] = [];
-  const removed: PackageResult[] = [];
-  const changed: Array<DiffResult['changed'][number]> = [];
+  const allNames = new Set([...fromMap.keys(), ...toMap.keys()]);
+  const grouped = Object.groupBy([...allNames], (name) => classifyPackage(name, fromMap, toMap));
 
-  for (const [name, pkg] of toMap) {
-    if (!fromMap.has(name)) {
-      added.push(pkg);
-    }
-  }
-
-  for (const [name, pkg] of fromMap) {
-    if (!toMap.has(name)) {
-      removed.push(pkg);
-    }
-  }
-
-  for (const [name, fromPkg] of fromMap) {
-    const toPkg = toMap.get(name);
-    if (!toPkg) continue;
-    if (fromPkg.category !== toPkg.category || fromPkg.currentVersion !== toPkg.currentVersion) {
-      changed.push({
-        name,
-        from: { version: fromPkg.currentVersion, category: fromPkg.category },
-        to: { version: toPkg.currentVersion, category: toPkg.category },
-      });
-    }
-  }
+  const added = (grouped.added ?? []).map((name) => toMap.get(name)!);
+  const removed = (grouped.removed ?? []).map((name) => fromMap.get(name)!);
+  const changed = (grouped.changed ?? []).map((name) => ({
+    name,
+    from: { version: fromMap.get(name)!.currentVersion, category: fromMap.get(name)!.category },
+    to: { version: toMap.get(name)!.currentVersion, category: toMap.get(name)!.category },
+  }));
 
   return { added, removed, changed };
 }
