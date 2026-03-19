@@ -52,7 +52,7 @@ function extractPackages(data: NpmLockfileJson): ParsedLockfile {
 
   for (const [key, details] of Object.entries(rawEntries)) {
     rawPackages[key] = {
-      version: details.version,
+      version: details.version ?? '',
       ...(details.resolved ? { resolved: details.resolved } : {}),
       ...(details.dependencies ? { dependencies: details.dependencies } : {}),
       ...(details.devDependencies ? { devDependencies: details.devDependencies } : {}),

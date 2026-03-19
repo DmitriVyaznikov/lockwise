@@ -1,5 +1,5 @@
-export { checkVulnerabilities, extractCvssScore } from './osv-checker.js';
-export type { VulnMapEntry } from './osv-checker.js';
-export { buildNexusTarballUrl, checkNexusAvailability } from './nexus-checker.js';
-export { createRegistryFetcher } from './registry-fetcher.js';
-export type { RegistryData, RegistryFetcher } from './registry-fetcher.js';
+export { checkVulnerabilities, extractCvssScore } from './osv.js';
+export type { VulnMapEntry } from './osv.js';
+export { buildNexusTarballUrl, checkNexusAvailability, createNexusChecker } from './nexus.js';
+export { createRegistryFetcher } from './registry.js';
+export type { RegistryData } from './registry.js';
