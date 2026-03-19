@@ -3,7 +3,16 @@ import type { LockwiseReport } from '@lockwise/core';
 import { useReport } from '../../composables/useReport';
 
 const mockReport: LockwiseReport = {
-  meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 3 },
+  meta: {
+    lockfileType: 'npm',
+    analyzedAt: '2026-03-17T10:00:00.000Z',
+    totalPackages: 3,
+    configUsed: {
+      nexusUrl: 'http://nexus.test/npm',
+      publicRegistry: 'https://registry.npmjs.org',
+      minAgeDays: 30,
+    },
+  },
   packages: [],
   summary: { success: 3, due1month: 0, mixed: 0, maybeVulnerable: 0, unavailable: 0 },
   nexusUpload: '',

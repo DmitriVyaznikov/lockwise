@@ -66,13 +66,13 @@ function goBack() {
               <span class="meta-label">Recommended:</span>
               <code>{{ pkg.recommendedVersion }}</code>
             </span>
-            <span v-if="pkg.semverRange" class="meta-item">
+            <span v-if="pkg.range" class="meta-item">
               <span class="meta-label">Range:</span>
-              <code>{{ pkg.semverRange }}</code>
+              <code>{{ pkg.range }}</code>
             </span>
             <CategoryBadge :category="pkg.category" />
-            <span :class="pkg.nexusAvailable ? 'nexus-yes' : 'nexus-no'">
-              Nexus: {{ pkg.nexusAvailable ? 'Available' : 'Unavailable' }}
+            <span :class="pkg.isInNexus ? 'nexus-yes' : 'nexus-no'">
+              Nexus: {{ pkg.isInNexus ? 'Available' : 'Unavailable' }}
             </span>
           </div>
         </div>

@@ -82,14 +82,14 @@ defineProps<{
             <tr v-for="item in diff.changed" :key="item.name" class="row-changed">
               <td><code>{{ item.name }}</code></td>
               <td>
-                <CategoryBadge :category="item.wasCategory" />
+                <CategoryBadge :category="item.from.category" />
               </td>
               <td>
-                <CategoryBadge :category="item.nowCategory" />
+                <CategoryBadge :category="item.to.category" />
               </td>
               <td>
-                <code v-if="item.wasVersion !== item.nowVersion">
-                  {{ item.wasVersion }} -> {{ item.nowVersion }}
+                <code v-if="item.from.version !== item.to.version">
+                  {{ item.from.version }} -> {{ item.to.version }}
                 </code>
                 <span v-else class="no-change">same version</span>
               </td>

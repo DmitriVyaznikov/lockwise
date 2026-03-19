@@ -39,7 +39,7 @@ const chartData = computed(() => {
   const sorted = [...props.reports].reverse();
 
   const labels = sorted.map((r) =>
-    new Date(r.meta.analyzedAt).toLocaleDateString('en-US', {
+    new Date(r.analyzedAt).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
     }),

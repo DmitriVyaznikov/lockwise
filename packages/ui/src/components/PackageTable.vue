@@ -55,7 +55,7 @@ const columns = [
       return val !== null ? val.toFixed(1) : '—';
     },
   }),
-  columnHelper.accessor('nexusAvailable', {
+  columnHelper.accessor('isInNexus', {
     header: 'Nexus',
     cell: (info) => (info.getValue() ? 'Yes' : 'No'),
   }),
@@ -121,7 +121,7 @@ const table = useVueTable({
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
             </CategoryBadge>
             <span
-              v-else-if="cell.column.id === 'nexusAvailable'"
+              v-else-if="cell.column.id === 'isInNexus'"
               :class="cell.getValue() ? 'nexus-yes' : 'nexus-no'"
             >
               <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
