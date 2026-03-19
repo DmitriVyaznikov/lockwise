@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { CATEGORY_LABELS } from '../types';
 import type { CategoryKey } from '../types';
 import { useReport } from '../composables/useReport';
+import { buildUploadEntries } from '../utils/build-upload-entries';
 import SummaryCards from '../components/SummaryCards.vue';
 import CategoryFilter from '../components/CategoryFilter.vue';
 import ToolBar from '../components/ToolBar.vue';
@@ -26,20 +28,20 @@ onUnmounted(() => {
   clearTimeout(debounceTimer);
 });
 
-const filteredPackages = computed(() => {
+const categoryPackages = computed(() => {
   if (!report.value) return [];
-  let packages = report.value.packages;
+  if (activeCategory.value === 'all') return [...report.value.packages];
+  return report.value.packages.filter((p) => p.category === activeCategory.value);
+});
 
-  if (activeCategory.value !== 'all') {
-    packages = packages.filter((p) => p.category === activeCategory.value);
-  }
+const uploadPackages = computed(() => buildUploadEntries(categoryPackages.value));
 
-  if (debouncedSearch.value.trim()) {
-    const query = debouncedSearch.value.toLowerCase();
-    packages = packages.filter((p) => p.name.toLowerCase().includes(query));
-  }
+const categoryLabel = computed(() => CATEGORY_LABELS[activeCategory.value]);
 
-  return packages;
+const filteredPackages = computed(() => {
+  if (!debouncedSearch.value.trim()) return categoryPackages.value;
+  const query = debouncedSearch.value.toLowerCase();
+  return categoryPackages.value.filter((p) => p.name.toLowerCase().includes(query));
 });
 
 onMounted(fetchReport);
@@ -58,7 +60,8 @@ onMounted(fetchReport);
       />
       <ToolBar
         v-model:search-query="searchQuery"
-        :nexus-upload="report.nexusUpload"
+        :upload-packages="uploadPackages"
+        :category-label="categoryLabel"
       />
       <PackageTable :packages="filteredPackages" />
     </template>

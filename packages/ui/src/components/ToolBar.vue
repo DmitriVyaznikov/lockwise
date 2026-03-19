@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps<{
   searchQuery: string;
-  nexusUpload: string;
+  uploadPackages: string[];
+  categoryLabel: string;
 }>();
 
 const emit = defineEmits<{
@@ -11,13 +12,17 @@ const emit = defineEmits<{
 }>();
 
 const copied = ref(false);
-const uploadPackages = computed(() =>
-  props.nexusUpload ? props.nexusUpload.split(' ') : [],
+
+watch(
+  () => props.uploadPackages,
+  () => {
+    copied.value = false;
+  },
 );
 
 async function copyUploadList() {
   try {
-    await navigator.clipboard.writeText(props.nexusUpload);
+    await navigator.clipboard.writeText(props.uploadPackages.join(' '));
     copied.value = true;
     setTimeout(() => {
       copied.value = false;
@@ -43,7 +48,7 @@ async function copyUploadList() {
         :class="{ copied }"
         @click="copyUploadList"
       >
-        {{ copied ? 'Copied!' : `Copy (${uploadPackages.length})` }}
+        {{ copied ? 'Copied!' : `Copy ${categoryLabel} (${uploadPackages.length})` }}
       </button>
       <div class="upload-preview">
         <span class="upload-text">{{ uploadPackages.join(', ') }}</span>
