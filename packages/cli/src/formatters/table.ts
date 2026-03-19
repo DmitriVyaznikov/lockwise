@@ -20,7 +20,7 @@ function maxCvss(pkg: PackageResult): string {
 }
 
 export function formatTable(
-  packages: PackageResult[],
+  packages: readonly PackageResult[],
   filterCategory?: PackageCategory | 'unavailable',
 ): string {
   const filtered = filterCategory
@@ -46,7 +46,7 @@ export function formatTable(
       pkg.recommendedVersion ?? chalk.dim('\u2014'),
       colorize(pkg.category),
       maxCvss(pkg),
-      pkg.nexusAvailable ? chalk.green('yes') : chalk.red('no'),
+      pkg.isInNexus ? chalk.green('yes') : chalk.red('no'),
     ]);
   }
 

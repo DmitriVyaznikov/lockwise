@@ -12,7 +12,7 @@ export function computeDiff(from: LockwiseReport, to: LockwiseReport): DiffResul
 
   const added: PackageResult[] = [];
   const removed: PackageResult[] = [];
-  const changed: DiffResult['changed'] = [];
+  const changed: Array<DiffResult['changed'][number]> = [];
 
   for (const [name, pkg] of toMap) {
     if (!fromMap.has(name)) {
@@ -32,10 +32,8 @@ export function computeDiff(from: LockwiseReport, to: LockwiseReport): DiffResul
     if (fromPkg.category !== toPkg.category || fromPkg.currentVersion !== toPkg.currentVersion) {
       changed.push({
         name,
-        wasCategory: fromPkg.category,
-        nowCategory: toPkg.category,
-        wasVersion: fromPkg.currentVersion,
-        nowVersion: toPkg.currentVersion,
+        from: { version: fromPkg.currentVersion, category: fromPkg.category },
+        to: { version: toPkg.currentVersion, category: toPkg.category },
       });
     }
   }
@@ -129,7 +127,8 @@ export function createHistoryRouter(outputDir: string): Router {
       if (!report) continue;
       items.push({
         filename,
-        meta: report.meta,
+        analyzedAt: report.meta.analyzedAt,
+        totalPackages: report.meta.totalPackages,
         summary: report.summary,
       });
     }

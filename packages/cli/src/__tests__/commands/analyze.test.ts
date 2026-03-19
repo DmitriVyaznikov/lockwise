@@ -5,6 +5,9 @@ vi.mock('node:fs');
 vi.mock('@lockwise/core', () => ({
   analyze: vi.fn(),
   detectAndParse: vi.fn(),
+  isOk: vi.fn((r: { _tag: string }) => r._tag === 'Ok'),
+  isErr: vi.fn((r: { _tag: string }) => r._tag === 'Err'),
+  formatError: vi.fn((e: { message: string }) => e.message),
 }));
 vi.mock('../../config.js', () => ({
   resolveConfig: vi.fn().mockReturnValue({
@@ -42,7 +45,16 @@ vi.mock('../../exit-code.js', () => ({
 }));
 
 const mockReport: LockwiseReport = {
-  meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 5 },
+  meta: {
+    lockfileType: 'npm',
+    analyzedAt: '2026-03-17T10:00:00.000Z',
+    totalPackages: 5,
+    configUsed: {
+      nexusUrl: 'http://nexus.test/repository/npm-group',
+      publicRegistry: 'https://registry.npmjs.org',
+      minAgeDays: 30,
+    },
+  },
   packages: [
     {
       name: 'lodash',
@@ -50,13 +62,24 @@ const mockReport: LockwiseReport = {
       recommendedVersion: '4.17.21',
       category: 'success',
       vulnerabilities: [],
-      nexusAvailable: true,
-      semverRange: '^4.17.0',
+      isInNexus: true,
+      maxCvss: 0,
+      availableVersions: [],
+      consumers: [],
+      range: '^4.17.0',
     },
   ],
   summary: { success: 5, due1month: 0, mixed: 0, maybeVulnerable: 0, unavailable: 0 },
   nexusUpload: '',
 };
+
+function okResult<T>(value: T) {
+  return { _tag: 'Ok' as const, value };
+}
+
+function errResult<E>(error: E) {
+  return { _tag: 'Err' as const, error };
+}
 
 describe('runAnalyze', () => {
   beforeEach(async () => {
@@ -71,12 +94,12 @@ describe('runAnalyze', () => {
     vi.mocked(fs.default.copyFileSync).mockReturnValue(undefined);
 
     const core = await import('@lockwise/core');
-    vi.mocked(core.detectAndParse).mockReturnValue({
-      type: 'npm',
+    vi.mocked(core.detectAndParse).mockReturnValue(okResult({
+      type: 'npm' as const,
       packages: [{ name: 'lodash', version: '4.17.21' }],
       rawPackages: {},
-    });
-    vi.mocked(core.analyze).mockResolvedValue(mockReport);
+    }));
+    vi.mocked(core.analyze).mockResolvedValue(okResult(mockReport));
 
     const { resolveLockfile } = await import('../../lockfile-resolver.js');
     vi.mocked(resolveLockfile).mockReturnValue('/project/package-lock.json');
@@ -93,6 +116,8 @@ describe('runAnalyze', () => {
       publicRegistry: 'https://registry.npmjs.org',
       minAgeDays: 30,
       outputDir: '.lockwise',
+      servePort: 3001,
+      uiPort: 3000,
     });
   });
 
@@ -110,7 +135,7 @@ describe('runAnalyze', () => {
 
   it('should throw when lockfile cannot be parsed', async () => {
     const core = await import('@lockwise/core');
-    vi.mocked(core.detectAndParse).mockReturnValue(null);
+    vi.mocked(core.detectAndParse).mockReturnValue(errResult({ _kind: 'parse', message: 'bad' }));
 
     const { runAnalyze } = await import('../../commands/analyze.js');
     await expect(runAnalyze({})).rejects.toThrow('Failed to parse lockfile');
@@ -181,7 +206,7 @@ describe('runAnalyze', () => {
     let capturedOnProgress: ((phase: string, current: number, total: number) => void) | undefined;
     vi.mocked(core.analyze).mockImplementation(async (_parsed, _config, options) => {
       capturedOnProgress = options?.onProgress;
-      return mockReport;
+      return okResult(mockReport);
     });
 
     const { runAnalyze } = await import('../../commands/analyze.js');

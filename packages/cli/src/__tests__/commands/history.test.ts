@@ -7,8 +7,14 @@ import { createHistoryRouter, computeDiff } from '../../commands/history.js';
 
 vi.mock('node:fs/promises');
 
+const defaultConfig = {
+  nexusUrl: 'http://nexus.test/npm',
+  publicRegistry: 'https://registry.npmjs.org',
+  minAgeDays: 30,
+};
+
 const makeReport = (overrides: Partial<LockwiseReport> = {}): LockwiseReport => ({
-  meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 2 },
+  meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 2, configUsed: defaultConfig },
   packages: [
     {
       name: 'lodash',
@@ -16,16 +22,23 @@ const makeReport = (overrides: Partial<LockwiseReport> = {}): LockwiseReport => 
       recommendedVersion: '4.17.21',
       category: 'success',
       vulnerabilities: [],
-      nexusAvailable: true,
-      semverRange: '^4.17.0',
+      isInNexus: true,
+      maxCvss: 0,
+      availableVersions: [],
+      consumers: [],
+      range: '^4.17.0',
     },
     {
       name: 'express',
       currentVersion: '4.18.0',
+      recommendedVersion: null,
       category: 'due1month',
       vulnerabilities: [],
-      nexusAvailable: false,
-      semverRange: '^4.18.0',
+      isInNexus: false,
+      maxCvss: 0,
+      availableVersions: [],
+      consumers: [],
+      range: '^4.18.0',
     },
   ],
   summary: { success: 1, due1month: 1, mixed: 0, maybeVulnerable: 0, unavailable: 0 },
@@ -34,11 +47,11 @@ const makeReport = (overrides: Partial<LockwiseReport> = {}): LockwiseReport => 
 });
 
 const reportOld = makeReport({
-  meta: { lockfileType: 'npm', analyzedAt: '2026-03-15T10:00:00.000Z', totalPackages: 2 },
+  meta: { lockfileType: 'npm', analyzedAt: '2026-03-15T10:00:00.000Z', totalPackages: 2, configUsed: defaultConfig },
 });
 
 const reportNew = makeReport({
-  meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 3 },
+  meta: { lockfileType: 'npm', analyzedAt: '2026-03-17T10:00:00.000Z', totalPackages: 3, configUsed: defaultConfig },
   packages: [
     {
       name: 'lodash',
@@ -46,24 +59,35 @@ const reportNew = makeReport({
       recommendedVersion: '4.17.21',
       category: 'success',
       vulnerabilities: [],
-      nexusAvailable: true,
-      semverRange: '^4.17.0',
+      isInNexus: true,
+      maxCvss: 0,
+      availableVersions: [],
+      consumers: [],
+      range: '^4.17.0',
     },
     {
       name: 'express',
       currentVersion: '4.19.0',
+      recommendedVersion: '4.19.0',
       category: 'success',
       vulnerabilities: [],
-      nexusAvailable: true,
-      semverRange: '^4.18.0',
+      isInNexus: true,
+      maxCvss: 0,
+      availableVersions: [],
+      consumers: [],
+      range: '^4.18.0',
     },
     {
       name: 'axios',
       currentVersion: '1.7.0',
+      recommendedVersion: '1.7.0',
       category: 'success',
       vulnerabilities: [],
-      nexusAvailable: true,
-      semverRange: '^1.7.0',
+      isInNexus: true,
+      maxCvss: 0,
+      availableVersions: [],
+      consumers: [],
+      range: '^1.7.0',
     },
   ],
   summary: { success: 3, due1month: 0, mixed: 0, maybeVulnerable: 0, unavailable: 0 },
@@ -94,8 +118,8 @@ describe('computeDiff', () => {
       expect.arrayContaining([
         expect.objectContaining({
           name: 'express',
-          wasCategory: 'due1month',
-          nowCategory: 'success',
+          from: expect.objectContaining({ category: 'due1month' }),
+          to: expect.objectContaining({ category: 'success' }),
         }),
       ]),
     );
@@ -113,9 +137,14 @@ describe('computeDiff', () => {
         {
           name: 'lodash',
           currentVersion: '4.17.20',
+          recommendedVersion: '4.17.21',
           category: 'success',
           vulnerabilities: [],
-          nexusAvailable: true,
+          isInNexus: true,
+          maxCvss: 0,
+          availableVersions: [],
+          consumers: [],
+          range: '^4.17.0',
         },
       ],
     });
@@ -124,9 +153,14 @@ describe('computeDiff', () => {
         {
           name: 'lodash',
           currentVersion: '4.17.21',
+          recommendedVersion: '4.17.21',
           category: 'success',
           vulnerabilities: [],
-          nexusAvailable: true,
+          isInNexus: true,
+          maxCvss: 0,
+          availableVersions: [],
+          consumers: [],
+          range: '^4.17.0',
         },
       ],
     });
@@ -134,10 +168,8 @@ describe('computeDiff', () => {
     expect(diff.changed).toEqual([
       expect.objectContaining({
         name: 'lodash',
-        wasCategory: 'success',
-        nowCategory: 'success',
-        wasVersion: '4.17.20',
-        nowVersion: '4.17.21',
+        from: { version: '4.17.20', category: 'success' },
+        to: { version: '4.17.21', category: 'success' },
       }),
     ]);
   });

@@ -64,12 +64,12 @@ describe('resolveConfig', () => {
     expect(config.outputDir).toBe('custom-output');
   });
 
-  it('should fall back to default for outputDir', () => {
+  it('should fall back to CLI default for outputDir', () => {
     const config = resolveConfig({ nexusUrl: 'http://nexus/npm' });
     expect(config.outputDir).toBe('.lockwise');
   });
 
-  it('should return all config fields', () => {
+  it('should return all config fields including CLI defaults', () => {
     const config = resolveConfig({ nexusUrl: 'http://nexus/npm' });
     expect(config).toEqual({
       nexusUrl: 'http://nexus/npm',

@@ -4,7 +4,7 @@ import { runAnalyze } from './commands/analyze.js';
 import { startServer } from './commands/serve.js';
 import { printConfig } from './commands/config.js';
 import { validatePort } from './validation.js';
-import { loadConfig } from '@lockwise/core';
+import { CLI_DEFAULTS } from './config.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -38,9 +38,9 @@ program
   .option('-p, --port <number>', 'Server port')
   .action(async (options) => {
     try {
-      const config = await loadConfig();
-      const port = options.port ? validatePort(options.port) : config.servePort;
-      startServer(config.outputDir, port);
+      const outputDir = process.env.LOCKWISE_OUTPUT_DIR ?? CLI_DEFAULTS.outputDir;
+      const port = options.port ? validatePort(options.port) : CLI_DEFAULTS.servePort;
+      startServer(outputDir, port);
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
       process.exit(1);
@@ -53,11 +53,11 @@ program
   .option('-p, --port <number>', 'Server port')
   .action(async (options) => {
     try {
-      const config = await loadConfig();
-      const port = options.port ? validatePort(options.port) : config.uiPort;
+      const outputDir = process.env.LOCKWISE_OUTPUT_DIR ?? CLI_DEFAULTS.outputDir;
+      const port = options.port ? validatePort(options.port) : CLI_DEFAULTS.uiPort;
       const __dirname = path.dirname(fileURLToPath(import.meta.url));
       const uiDist = path.resolve(__dirname, '../../ui/dist');
-      startServer(config.outputDir, port, uiDist);
+      startServer(outputDir, port, uiDist);
       console.log(`Dashboard: http://127.0.0.1:${port}`);
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));

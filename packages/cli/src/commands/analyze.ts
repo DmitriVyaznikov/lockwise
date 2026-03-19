@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import ora from 'ora';
-import { analyze, detectAndParse } from '@lockwise/core';
+import { analyze, detectAndParse, isOk, isErr, formatError } from '@lockwise/core';
 import type { LockwiseReport } from '@lockwise/core';
 import { resolveLockfile } from '../lockfile-resolver.js';
 import { saveReport } from '../report-saver.js';
@@ -29,18 +29,19 @@ export async function runAnalyze(options: AnalyzeCliOptions): Promise<AnalyzeRes
   spinner.start(`Reading lockfile: ${lockfilePath}`);
   const content = fs.readFileSync(lockfilePath, 'utf-8');
 
-  const parsed = detectAndParse(content);
-  if (!parsed) {
+  const parseResult = detectAndParse(content);
+  if (isErr(parseResult)) {
     spinner.fail('Failed to parse lockfile');
     throw new Error(`Failed to parse lockfile: ${lockfilePath}`);
   }
+  const parsed = parseResult.value;
   spinner.succeed(`Parsed ${parsed.type} lockfile (${parsed.packages.length} packages)`);
 
   const config = resolveConfig({ nexusUrl: options.nexusUrl });
 
   let lastPhase = '';
   spinner.start('Starting analysis...');
-  const report = await analyze(parsed, config, {
+  const analyzeResult = await analyze(parsed, config, {
     onProgress(phase, current, total) {
       if (lastPhase && lastPhase !== phase) {
         spinner.succeed(`[${lastPhase}] done`);
@@ -54,6 +55,12 @@ export async function runAnalyze(options: AnalyzeCliOptions): Promise<AnalyzeRes
       }
     },
   });
+
+  if (isErr(analyzeResult)) {
+    spinner.fail('Analysis failed');
+    throw new Error(analyzeResult.error.map(formatError).join('\n'));
+  }
+  const report = analyzeResult.value;
 
   const savedPath = saveReport(report, config.outputDir, options.output);
 

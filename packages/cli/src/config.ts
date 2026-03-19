@@ -2,6 +2,18 @@ import { DEFAULT_CONFIG } from '@lockwise/core';
 import type { LockwiseConfig } from '@lockwise/core';
 import { isValidHttpUrl } from './validation.js';
 
+export interface CliConfig extends LockwiseConfig {
+  readonly outputDir: string;
+  readonly servePort: number;
+  readonly uiPort: number;
+}
+
+export const CLI_DEFAULTS = {
+  outputDir: '.lockwise',
+  servePort: 3001,
+  uiPort: 3000,
+} as const;
+
 function sanitizeUrl(raw: string): string {
   try {
     const parsed = new URL(raw);
@@ -17,7 +29,7 @@ export interface ResolveConfigOptions {
   readonly nexusUrl?: string;
 }
 
-export function resolveConfig(cliOptions: ResolveConfigOptions): LockwiseConfig {
+export function resolveConfig(cliOptions: ResolveConfigOptions): CliConfig {
   const nexusUrl = cliOptions.nexusUrl ?? process.env.LOCKWISE_NEXUS_URL;
 
   if (!nexusUrl) {
@@ -44,14 +56,14 @@ export function resolveConfig(cliOptions: ResolveConfigOptions): LockwiseConfig 
     : DEFAULT_CONFIG.minAgeDays;
 
   const outputDir =
-    process.env.LOCKWISE_OUTPUT_DIR ?? DEFAULT_CONFIG.outputDir;
+    process.env.LOCKWISE_OUTPUT_DIR ?? CLI_DEFAULTS.outputDir;
 
   return {
     nexusUrl,
     publicRegistry,
     minAgeDays,
     outputDir,
-    servePort: DEFAULT_CONFIG.servePort,
-    uiPort: DEFAULT_CONFIG.uiPort,
+    servePort: CLI_DEFAULTS.servePort,
+    uiPort: CLI_DEFAULTS.uiPort,
   };
 }
