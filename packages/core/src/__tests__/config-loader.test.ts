@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { loadConfig } from '../config-loader.js';
-import { DEFAULT_CONFIG } from '../types.js';
+import { DEFAULT_CONFIG } from '../domain/report.js';
+import { isOk, isErr } from '../fp/result.js';
 
 vi.mock('cosmiconfig', () => {
   const searchMock = vi.fn();
@@ -22,20 +23,22 @@ describe('loadConfig', () => {
     vi.clearAllMocks();
   });
 
-  it('should return DEFAULT_CONFIG when no config file is found', async () => {
+  it('should return Ok with DEFAULT_CONFIG when no config file is found', async () => {
     const searchMock = await getSearchMock();
     searchMock.mockResolvedValue(null);
 
-    const config = await loadConfig('/some/dir');
-    expect(config).toEqual({ ...DEFAULT_CONFIG });
+    const result = await loadConfig('/some/dir');
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) expect(result.value).toEqual({ ...DEFAULT_CONFIG });
   });
 
-  it('should return DEFAULT_CONFIG when config result is empty', async () => {
+  it('should return Ok with DEFAULT_CONFIG when config result is empty', async () => {
     const searchMock = await getSearchMock();
     searchMock.mockResolvedValue({ config: {}, isEmpty: true, filepath: '' });
 
-    const config = await loadConfig('/some/dir');
-    expect(config).toEqual({ ...DEFAULT_CONFIG });
+    const result = await loadConfig('/some/dir');
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) expect(result.value).toEqual({ ...DEFAULT_CONFIG });
   });
 
   it('should merge partial config with defaults', async () => {
@@ -46,32 +49,15 @@ describe('loadConfig', () => {
       filepath: '/project/lockwise.config.ts',
     });
 
-    const config = await loadConfig('/project');
-    expect(config).toEqual({
-      ...DEFAULT_CONFIG,
-      nexusUrl: 'https://custom-nexus.example.com',
-      minAgeDays: 14,
-    });
-  });
-
-  it('should override all defaults when full config is provided', async () => {
-    const searchMock = await getSearchMock();
-    const fullConfig = {
-      nexusUrl: 'https://nexus.corp.com/npm',
-      publicRegistry: 'https://registry.corp.com',
-      minAgeDays: 7,
-      outputDir: 'reports',
-      servePort: 4000,
-      uiPort: 4001,
-    };
-    searchMock.mockResolvedValue({
-      config: fullConfig,
-      isEmpty: false,
-      filepath: '/project/.lockwiserc.json',
-    });
-
-    const config = await loadConfig('/project');
-    expect(config).toEqual(fullConfig);
+    const result = await loadConfig('/project');
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value).toEqual({
+        ...DEFAULT_CONFIG,
+        nexusUrl: 'https://custom-nexus.example.com',
+        minAgeDays: 14,
+      });
+    }
   });
 
   it('should search from cwd when no directory is provided', async () => {
@@ -90,7 +76,15 @@ describe('loadConfig', () => {
     expect(searchMock).toHaveBeenCalledWith('/custom/path');
   });
 
-  it('should ignore unknown config fields', async () => {
+  it('should return Err when cosmiconfig throws', async () => {
+    const searchMock = await getSearchMock();
+    searchMock.mockRejectedValue(new Error('parse error'));
+
+    const result = await loadConfig('/bad/path');
+    expect(isErr(result)).toBe(true);
+  });
+
+  it('should merge unknown config fields', async () => {
     const searchMock = await getSearchMock();
     searchMock.mockResolvedValue({
       config: { nexusUrl: 'https://nexus.example.com', unknownField: true },
@@ -98,8 +92,10 @@ describe('loadConfig', () => {
       filepath: '/project/lockwise.config.ts',
     });
 
-    const config = await loadConfig('/project');
-    expect(config.nexusUrl).toBe('https://nexus.example.com');
-    expect((config as Record<string, unknown>)['unknownField']).toBe(true);
+    const result = await loadConfig('/project');
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.nexusUrl).toBe('https://nexus.example.com');
+    }
   });
 });

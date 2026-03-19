@@ -1,28 +1,28 @@
 import { cosmiconfig } from 'cosmiconfig';
-import type { LockwiseConfig } from './types.js';
-import { DEFAULT_CONFIG } from './types.js';
+import type { Result } from './fp/result.js';
+import { ok, err } from './fp/result.js';
+import type { LockwiseConfig } from './domain/report.js';
+import { DEFAULT_CONFIG } from './domain/report.js';
+import type { LockwiseError } from './domain/errors.js';
+import { validationError } from './domain/errors.js';
 
-/**
- * Loads Lockwise configuration using cosmiconfig.
- *
- * Search paths (in order):
- * - lockwise.config.ts / .js / .cjs / .mjs
- * - .lockwiserc / .lockwiserc.json / .lockwiserc.yaml / .lockwiserc.yml
- * - .lockwiserc.js / .lockwiserc.cjs / .lockwiserc.mjs
- * - package.json#lockwise
- *
- * Missing fields are filled from DEFAULT_CONFIG.
- */
-export async function loadConfig(cwd?: string): Promise<LockwiseConfig> {
-  const explorer = cosmiconfig('lockwise', {
-    searchStrategy: 'global',
-  });
+export async function loadConfig(cwd?: string): Promise<Result<LockwiseConfig, LockwiseError>> {
+  try {
+    const explorer = cosmiconfig('lockwise', {
+      searchStrategy: 'global',
+    });
 
-  const result = await explorer.search(cwd);
+    const result = await explorer.search(cwd);
 
-  if (!result || result.isEmpty) {
-    return { ...DEFAULT_CONFIG };
+    if (!result || result.isEmpty) {
+      return ok({ ...DEFAULT_CONFIG });
+    }
+
+    return ok({ ...DEFAULT_CONFIG, ...result.config });
+  } catch (error) {
+    return err(validationError(
+      'config',
+      error instanceof Error ? error.message : String(error),
+    ));
   }
-
-  return { ...DEFAULT_CONFIG, ...result.config };
 }
