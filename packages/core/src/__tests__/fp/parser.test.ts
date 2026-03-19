@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { isOk, isErr } from '../../fp/result.js';
 import { isSome, isNone } from '../../fp/maybe.js';
 import {
-  type Parser,
   run,
   literal, regex, char,
   seq, alt, many, many1, optional, sepBy,

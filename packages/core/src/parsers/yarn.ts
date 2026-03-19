@@ -1,5 +1,5 @@
 import type { Result } from '../fp/result.js';
-import { ok, err, isOk } from '../fp/result.js';
+import { ok, err } from '../fp/result.js';
 import { flatMap, map } from '../fp/result.js';
 import type { ParsedLockfile, PackageEntry, RawPackageData } from '../domain/report.js';
 import { parseError } from '../domain/errors.js';

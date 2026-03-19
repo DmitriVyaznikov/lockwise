@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  type LockwiseError,
   parseError, nexusError, osvError, registryError, validationError,
   formatError,
 } from '../../domain/errors.js';

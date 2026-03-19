@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { Result } from '../fp/result.js';
-import { ok, err, isOk } from '../fp/result.js';
+import { ok, err } from '../fp/result.js';
 import { registryError } from '../domain/errors.js';
 import type { LockwiseError } from '../domain/errors.js';
 import { logger } from '../logger.js';

@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type {
-  PackageCategory, VersionSelection, VulnInfo,
-  PackageResult, LockwiseReport, LockwiseConfig,
-  ParsedLockfile, RangeEntry, VersionInfo, ConsumerInfo,
-  DiffResult, ReportListItem,
-} from '../../domain/report.js';
+import type { VersionSelection, LockwiseReport } from '../../domain/report.js';
 import { DEFAULT_CONFIG } from '../../domain/report.js';
 
 describe('Report Types', () => {

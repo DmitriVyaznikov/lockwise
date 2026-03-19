@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import ora from 'ora';
-import { analyze, detectAndParse, isOk, isErr, formatError } from '@lockwise/core';
+import { analyze, detectAndParse, isErr, formatError } from '@lockwise/core';
 import type { LockwiseReport } from '@lockwise/core';
 import { resolveLockfile } from '../lockfile-resolver.js';
 import { saveReport } from '../report-saver.js';
