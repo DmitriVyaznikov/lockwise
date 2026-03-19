@@ -7,7 +7,7 @@
 CLI tool and web dashboard for syncing npm dependencies between a public registry and a private Nexus registry.
 
 **GitHub:** https://github.com/DmitriVyaznikov/lockwise
-**npm:** https://www.npmjs.com/package/@lockwise
+**npm:** [@lockwise/core](https://www.npmjs.com/package/@lockwise/core) | [@lockwise/cli](https://www.npmjs.com/package/@lockwise/cli)
 
 ## Problem
 
