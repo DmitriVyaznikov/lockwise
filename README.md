@@ -1,5 +1,6 @@
 # Lockwise
 
+[![CI](https://github.com/DmitriVyaznikov/lockwise/actions/workflows/ci.yml/badge.svg)](https://github.com/DmitriVyaznikov/lockwise/actions/workflows/ci.yml)
 [![npm @lockwise/core](https://img.shields.io/npm/v/@lockwise/core?label=%40lockwise%2Fcore)](https://www.npmjs.com/package/@lockwise/core)
 [![npm @lockwise/cli](https://img.shields.io/npm/v/@lockwise/cli?label=%40lockwise%2Fcli)](https://www.npmjs.com/package/@lockwise/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/DmitriVyaznikov/lockwise/blob/main/LICENSE)
